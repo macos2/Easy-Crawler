@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<gresources>
+  <gresource prefix="/org/gtk">
+    <file  compressed="true">task.glade</file>
+    <file  compressed="true">mainui.glade</file>
+    <file  compressed="true">operater.glade</file>
+    <file  compressed="true">task_setting.glade</file>
+    <file  compressed="true">mainui_setting.glade</file>
+    <file  compressed="true">donate_weixin.png</file>
+    <file  compressed="true">donate_alipay.jpg</file>
+  </gresource>
+</gresources>
