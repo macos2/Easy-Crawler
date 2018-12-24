@@ -36,7 +36,7 @@ GThreadPool *pool;
 gchar *OUTPUT_DIR;
 gchar *COOKIE_FILE;
 GIOChannel *log_file;
-GMutex *log_mutex,*log_task_href_mutex;
+GMutex *log_mutex, *log_task_href_mutex;
 gboolean stop_thread;
 static gint task_id = 0;
 static gint operater_id = 0;
@@ -127,8 +127,8 @@ void task_drag_data_received(GtkWidget *widget, GdkDragContext *context, gint x,
 void task_update_status(MyTask *self, task_set *set) {
 	gchar *str = NULL;
 	if (set->output_xpath) {
-		gtk_image_set_from_icon_name(my_task_get_next_icon(self), "go-next-symbolic",
-				GTK_ICON_SIZE_LARGE_TOOLBAR);
+		gtk_image_set_from_icon_name(my_task_get_next_icon(self),
+				"go-next-symbolic", GTK_ICON_SIZE_LARGE_TOOLBAR);
 		g_signal_connect(my_task_get_next_event(self), "drag-data-get",
 				task_drag_data_get, self);
 	} else {
@@ -148,13 +148,13 @@ void task_update_status(MyTask *self, task_set *set) {
 				"network-transmit-symbolic", GTK_ICON_SIZE_LARGE_TOOLBAR);
 		break;
 	default:
-		gtk_image_set_from_icon_name(my_task_get_state_icon(self), "go-next-symbolic",
-				GTK_ICON_SIZE_LARGE_TOOLBAR);
+		gtk_image_set_from_icon_name(my_task_get_state_icon(self),
+				"go-next-symbolic", GTK_ICON_SIZE_LARGE_TOOLBAR);
 		break;
 	}
 	if (set->search_xpath == TRUE) {
-		gtk_image_set_from_icon_name(my_task_get_icon(self), "system-search-symbolic",
-				GTK_ICON_SIZE_LARGE_TOOLBAR);
+		gtk_image_set_from_icon_name(my_task_get_icon(self),
+				"system-search-symbolic", GTK_ICON_SIZE_LARGE_TOOLBAR);
 		str = g_strdup_printf("xpath:%s prop:%s", set->xpath,
 				set->output_xpathprop);
 		gtk_label_set_text(my_task_get_label(self), str);
@@ -307,7 +307,8 @@ MyOperater * main_ui_add(MyMainui *ui, gpointer userdata) {
 	g_hash_table_insert(operater_to_opdata, op, data);
 	g_signal_connect(op, "add_child", operater_add_task, data);
 	g_signal_connect(op, "close", operater_close, data);
-	if(userdata==NULL)operater_add_task(op, data);
+	if (userdata == NULL)
+		operater_add_task(op, data);
 	return op;
 }
 ;
@@ -408,12 +409,12 @@ void main_ui_save(MyMainui *ui, gpointer userdata) {
 	GtkDialog *dialog = gtk_file_chooser_dialog_new("Open", ui,
 			GTK_FILE_CHOOSER_ACTION_SAVE, GTK_STOCK_SAVE, GTK_RESPONSE_OK,
 			GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL, NULL);
-	GtkFileFilter *filter=gtk_file_filter_new();
-	gtk_file_filter_add_pattern(filter,"*.ecc");
-	gtk_file_filter_set_name(filter,"Easy Crawler Data File(*.ecc)");
-	gtk_file_chooser_add_filter(dialog,filter);
+	GtkFileFilter *filter = gtk_file_filter_new();
+	gtk_file_filter_add_pattern(filter, "*.ecc");
+	gtk_file_filter_set_name(filter, "Easy Crawler Data File(*.ecc)");
+	gtk_file_chooser_add_filter(dialog, filter);
 	gint i = gtk_dialog_run(dialog);
-	gchar *filename,*temp;
+	gchar *filename, *temp;
 	GIOStream *io;
 	GOutputStream *output;
 	GList *list, *task_list;
@@ -427,7 +428,11 @@ void main_ui_save(MyMainui *ui, gpointer userdata) {
 	case GTK_RESPONSE_OK:
 		temp = gtk_file_chooser_get_filename(dialog);
 		g_print("Save file:%s.ecc\n", temp);
-		if(g_strrstr(temp,".ecc")==NULL){filename=g_strdup_printf("%s.ecc",temp);}else{filename=g_strdup_printf("%s",temp);}
+		if (g_strrstr(temp, ".ecc") == NULL) {
+			filename = g_strdup_printf("%s.ecc", temp);
+		} else {
+			filename = g_strdup_printf("%s", temp);
+		}
 		g_free(temp);
 		GFile *file = g_file_new_for_path(filename);
 		g_unlink(filename);
@@ -510,13 +515,13 @@ void main_ui_open(MyMainui *ui, gpointer userdata) {
 	GtkDialog *dialog = gtk_file_chooser_dialog_new("Open", ui,
 			GTK_FILE_CHOOSER_ACTION_OPEN, GTK_STOCK_OPEN, GTK_RESPONSE_OK,
 			GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL, NULL);
-	GtkFileFilter *filter=gtk_file_filter_new();
-	gtk_file_filter_add_pattern(filter,"*.ecc");
-	gtk_file_filter_set_name(filter,"Easy Crawler Data File(*.ecc)");
-	gtk_file_chooser_add_filter(dialog,filter);
+	GtkFileFilter *filter = gtk_file_filter_new();
+	gtk_file_filter_add_pattern(filter, "*.ecc");
+	gtk_file_filter_set_name(filter, "Easy Crawler Data File(*.ecc)");
+	gtk_file_chooser_add_filter(dialog, filter);
 	guint i = gtk_dialog_run(dialog), j;
 	guint task_count, operater_count, link_count, legth;
-	gchar *filename,*title;
+	gchar *filename, *title;
 	GIOStream *io;
 	GInputStream *in;
 	GFile *file;
@@ -550,7 +555,7 @@ void main_ui_open(MyMainui *ui, gpointer userdata) {
 		op_data *opdata;
 		for (i = 0; i < operater_count; i++) {
 			g_input_stream_read(in, &p, sizeof(gpointer), NULL, NULL);
-			title=main_ui_read_string(in);
+			title = main_ui_read_string(in);
 			g_input_stream_read(in, &allocation, sizeof(GtkAllocation), NULL,
 			NULL);
 			MyOperater *operater = main_ui_add(ui, ui);
@@ -649,58 +654,19 @@ void main_ui_stop(MyMainui *ui, gpointer userdata) {
 	g_mutex_unlock(log_task_href_mutex);
 }
 
-void main_log(MyOperater *op,gchar *log) {
+void main_log(MyOperater *op, gchar *log) {
 	g_mutex_lock(log_mutex);
-	gchar *title=my_operater_get_title(op);
-	gchar *str=g_strdup_printf("Operater:%s--%s",title,log);
-	g_io_channel_write_chars(log_file,str,-1,NULL,NULL);
-	g_io_channel_flush(log_file,NULL);
+	gchar *title = my_operater_get_title(op);
+	gchar *str = g_strdup_printf("Operater:%s--%s", title, log);
+	g_io_channel_write_chars(log_file, str, -1, NULL, NULL);
+	g_io_channel_flush(log_file, NULL);
 	g_free(str);
 	g_mutex_unlock(log_mutex);
 }
 
-void task_thread_adjust_http_url(MyTaskMessage *task_msg, SoupURI *source_uri) {
-	SoupURI *uri = soup_uri_new(task_msg->url);
-	gchar *url = g_strdup(task_msg->url);
-	gchar *p,**tem;
-	GString *str;
-	gint i;
-	if (uri == NULL) {
-		g_free(task_msg->url);
-		p = url;
-		if (url[0] == '/') {
-			if (url[0] == url[1]) {//get href link like '//abc.html'
-			task_msg->url = g_strdup_printf("%s:%s", source_uri->scheme,p);
-			}else{//get href link like '/abc.html'
-			task_msg->url = g_strdup_printf("%s://%s%s", source_uri->scheme,
-			source_uri->host, p);
-			}
-		} else {//get href link like 'abc.html'
-			tem=g_strsplit(source_uri->path,"/", -1);
-			str=g_string_new("");
-			i=0;
-			while(tem[i+1]!=NULL){
-				g_string_append(str,tem[i]);
-				g_string_append(str,"/");
-				i++;
-			}
-			task_msg->url = g_strdup_printf("%s://%s%s%s", source_uri->scheme,
-					source_uri->host,str->str, p);
-			g_print("%s\n",task_msg->url);
-			g_string_free(str,TRUE);
-			g_strfreev(tem);
-		}
-	} else {
-		soup_uri_free(uri);
-	};
-	if (url != NULL)
-		g_free(url);
-
-}
-
-xmlXPathObject *task_thread_search_xpath(task_set *set, MyTaskMessage *task_msg) {
+xmlXPathObject *task_thread_search_xpath(task_set *set,
+		MyTaskMessage *task_msg) {
 	SoupMessage *msg = task_msg->msg;
-	gchar *url = task_msg->url;
 	if (set->search_xpath != TRUE)
 		return NULL;
 	xmlXPathObject *xobj = xmlXPathEvalExpression(set->xpath, task_msg->ctxt);
@@ -711,17 +677,26 @@ xmlXPathObject *task_thread_search_xpath(task_set *set, MyTaskMessage *task_msg)
 char *task_thread_output_file_setname(task_set *set, MyTaskMessage *task_msg) {
 	gchar *name, **urlv;
 	gint i = 0;
-	gchar *url = task_msg->url;
+	gchar *url = soup_uri_get_path(task_msg->uri);
 	if (set->auto_filename || g_strcmp0(set->output_filename, "") == 0) {
 		urlv = g_strsplit(url, "/", -1);
 		while (urlv[i + 1] != NULL)
 			i++;
-		if (g_strcmp0("", urlv[i]) == 0)
-			i--;
-		if (set->search_xpath) {
-			name = g_strdup_printf("%s/xpath-search-%s", OUTPUT_DIR, urlv[i]);
+		if (g_strcmp0("", urlv[i]) == 0) {// the root path.urlv[i] is unvaild filename
+			name = g_strdup_printf("%s/%s", OUTPUT_DIR,
+					soup_uri_get_host(task_msg->uri));
+			while (g_access(name, 00) > 0) {
+				g_free(name);
+				name = g_strdup_printf("%s/%s.%d", OUTPUT_DIR,
+						soup_uri_get_host(task_msg->uri), i++);
+			};
 		} else {
-			name = g_strdup_printf("%s/%s", OUTPUT_DIR, urlv[i]);
+			if (set->search_xpath) {
+				name = g_strdup_printf("%s/xpath-search-%s", OUTPUT_DIR,
+						urlv[i]);
+			} else {
+				name = g_strdup_printf("%s/%s", OUTPUT_DIR, urlv[i]);
+			}
 		}
 		g_strfreev(urlv);
 	} else {
@@ -732,6 +707,7 @@ char *task_thread_output_file_setname(task_set *set, MyTaskMessage *task_msg) {
 					i++);
 		};
 	};
+
 	return name;
 }
 
@@ -760,30 +736,31 @@ void task_thread_output_file(task_set *set, MyTaskMessage *task_msg,
 
 void task_thread_terminal_print(task_set *set, MyTaskMessage *task_msg,
 		gchar *xpath_result) {
+	gchar *temp = soup_uri_to_string(task_msg->uri, FALSE);
 	if (set->terminal_print) {
 		if (set->search_xpath) {
 			g_print(
 					"#####URL:\"%s\"\n#####Xpath:\"%s\"\n#####Search result:\n%s\n",
-					task_msg->url, set->xpath, xpath_result);
+					temp, set->xpath, xpath_result);
 		} else {
-			g_print("#####URL:\"%s\"\n#####Response:\n", task_msg->url);
+			g_print("#####URL:\"%s\"\n#####Response:\n", temp);
 			printf("%s\n", task_msg->msg->response_body->data);
 		}
 	};
+	g_free(temp);
 }
 ;
 
 guint task_thread_send_message(MyTaskMessage *task_msg) {
-	task_msg->msg = soup_message_new("GET", task_msg->url);
+	task_msg->msg = soup_message_new_from_uri("GET", task_msg->uri);
 	SoupMessage *msg = task_msg->msg;
-	gchar *url = task_msg->url;
 	return soup_session_send_message(task_msg->session, task_msg->msg);
 
 }
 
 void task_thread_load_html_doc(MyTaskMessage *task_msg, task_set *set) {
 	SoupMessage *msg = task_msg->msg;
-	gchar *url = task_msg->url;
+	gchar *url = soup_uri_to_string(task_msg->uri, FALSE);
 	GString *charset = g_string_new("");
 	g_string_printf(charset, "UTF-8");
 	if (g_strrstr(msg->response_body->data, "GBK") != 0
@@ -799,6 +776,7 @@ void task_thread_load_html_doc(MyTaskMessage *task_msg, task_set *set) {
 	g_string_free(charset, TRUE);
 	task_msg->doc = doc;
 	task_msg->ctxt = ctxt;
+	g_free(url);
 }
 
 void task_thread(MyTaskMessage *task_msg, gpointer userdata) {
@@ -808,7 +786,7 @@ void task_thread(MyTaskMessage *task_msg, gpointer userdata) {
 	xmlXPathObject *xpobj;
 	xmlNodeSet *ns;
 	GString *str;
-	gchar *content, *prop, *result, *temp;
+	gchar *content, *prop, *result, *temp, *temp2;
 	gint i;
 	guint status;
 	GList *task_list, *task_link;
@@ -817,97 +795,100 @@ void task_thread(MyTaskMessage *task_msg, gpointer userdata) {
 		my_task_message_free(task_msg);
 		return;
 	}
-	SoupURI *uri = soup_uri_new(task_msg->url);
-	if (uri == NULL){
-		temp=g_strdup_printf("无效链接:%s\n",task_msg->url);
-		main_log(op,temp);
-		g_free(temp);
-		return;}
+	//检查处理的uri是否有重复。
 	g_mutex_lock(log_task_href_mutex);
 	GString *log_href = g_hash_table_lookup(log_task_href, task);
+	temp = soup_uri_to_string(task_msg->uri, FALSE);
 	if (log_href == NULL) {
 		log_href = g_string_new("");
 	} else {
-		if (g_strrstr(log_href->str, task_msg->url) != NULL) {
-			temp=g_strdup_printf("跳过重复链接:%s\n",task_msg->url);
-			main_log(op,temp);
-			g_free(temp);
-			soup_uri_free(uri);
+		if (g_strrstr(log_href->str, temp) != NULL) {
+			temp2 = g_strdup_printf("跳过重复链接:%s\n", temp);
+			main_log(op, temp2);
+			g_free(temp2);
 			g_mutex_unlock(log_task_href_mutex);
 			return;
 		};
 	}
-	log_href = g_string_append(log_href, task_msg->url);
+	log_href = g_string_append(log_href, temp);
 	g_hash_table_insert(log_task_href, task, log_href);
 	g_mutex_unlock(log_task_href_mutex);
-	temp=g_strdup_printf("deal with url:%s\n",task_msg->url);
-	main_log(op,temp);
-	g_free(temp);
+	//向目标网址发送Get请求
+	temp2 = g_strdup_printf("deal with url:%s\n", temp);
+	main_log(op, temp2);
+	g_free(temp2);
 	if (task_msg->msg == NULL) {
 		status = task_thread_send_message(task_msg);
 		if (status != SOUP_STATUS_OK) {
 			g_object_unref(task_msg);
-			temp=g_strdup_printf("!!错误:%s Response:%s\n", task_msg->url,
+			temp2 = g_strdup_printf("!!错误:%s Response:%s\n", temp,
 					soup_status_get_phrase(status));
-			main_log(op,temp);
-			g_free(temp);
+			main_log(op, temp2);
+			g_free(temp2);
 			return;
 		}
 	};
+	g_free(temp);
 	str = g_string_new("");
+	//处理Get的response
 	if (set->search_xpath) {
 		if (task_msg->doc == NULL)
 			task_thread_load_html_doc(task_msg, set);
 		xpobj = task_thread_search_xpath(set, task_msg);
 
-		if(xpobj!=NULL&&xpobj->nodesetval!=NULL){
+		if (xpobj != NULL && xpobj->nodesetval != NULL) {
 			ns = xpobj->nodesetval;
-		if (set->output_xpath && g_strcmp0("", set->output_xpathprop) != 0) {
-			g_string_printf(str, "\n\n####### XPATH:%s\n####### PROP:%s\n\n",
-					set->xpath, set->output_xpathprop);
-			for (i = 0; i < ns->nodeNr; i++) {
-				content = xmlNodeGetContent(ns->nodeTab[i]);
-				if (content == NULL)
-					content = g_strdup("null");
-				content = g_strstrip(content);
-				prop = xmlGetProp(ns->nodeTab[i], set->output_xpathprop);
-				if (prop == NULL)
-					prop = g_strdup("null");
-				prop = g_strstrip(prop);
-				if (stop_thread == FALSE) {
-					task_link = task_get_linklist(task);
-					while (task_link != NULL) {
-						sub_task_msg = my_task_message_new(session, prop,
-								task_link->data, task_id++);
-						task_thread_adjust_http_url(sub_task_msg, uri);
-						if (stop_thread == FALSE) {
-							g_thread_pool_push(pool, sub_task_msg, NULL);
-						} else {
-							my_task_message_free(sub_task_msg);
-						};
-						task_link = task_link->next;
-					}
-				}
-				g_string_append_printf(str, "\"%s\":\"%s\"\n", (gchar*) content,
-						(gchar*) prop);
-				g_free(prop);
-				g_free(content);
-			};
-		} else {
-			g_string_printf(str, "\n\n####### XPATH:%s\n#######\n", set->xpath);
-			for (i = 0; i < ns->nodeNr; i++) {
+			if (set->output_xpath
+					&& g_strcmp0("", set->output_xpathprop) != 0) {
+				g_string_printf(str,
+						"\n\n####### XPATH:%s\n####### PROP:%s\n\n", set->xpath,
+						set->output_xpathprop);
 				for (i = 0; i < ns->nodeNr; i++) {
 					content = xmlNodeGetContent(ns->nodeTab[i]);
 					if (content == NULL)
 						content = g_strdup("null");
 					content = g_strstrip(content);
-					g_string_append_printf(str, "\"%s\"\n", (gchar*) content);
+					prop = xmlGetProp(ns->nodeTab[i], set->output_xpathprop);
+					if (prop == NULL)
+						prop = g_strdup("null");
+					prop = g_strstrip(prop);
+					if (stop_thread == FALSE) {
+						task_link = task_get_linklist(task);
+						while (task_link != NULL) {
+							sub_task_msg = my_task_message_new(session,
+									soup_uri_new_with_base(task_msg->uri, prop),
+									task_link->data, task_id++);
+							if (stop_thread == FALSE) {
+								g_thread_pool_push(pool, sub_task_msg, NULL);
+							} else {
+								my_task_message_free(sub_task_msg);
+							};
+							task_link = task_link->next;
+						}
+					}
+					g_string_append_printf(str, "\"%s\":\"%s\"\n",
+							(gchar*) content, (gchar*) prop);
+					g_free(prop);
 					g_free(content);
 				};
+			} else {
+				g_string_printf(str, "\n\n####### XPATH:%s\n#######\n",
+						set->xpath);
+				for (i = 0; i < ns->nodeNr; i++) {
+					for (i = 0; i < ns->nodeNr; i++) {
+						content = xmlNodeGetContent(ns->nodeTab[i]);
+						if (content == NULL)
+							content = g_strdup("null");
+						content = g_strstrip(content);
+						g_string_append_printf(str, "\"%s\"\n",
+								(gchar*) content);
+						g_free(content);
+					};
+				};
 			};
+			xmlXPathFreeObject(xpobj);
 		};
-		xmlXPathFreeObject(xpobj);
-	};};
+	};
 	if (set->output_file)
 		task_thread_output_file(set, task_msg, str->str);
 	if (set->terminal_print)
@@ -925,11 +906,9 @@ void task_thread(MyTaskMessage *task_msg, gpointer userdata) {
 			my_task_message_free(task_msg);
 		}
 	}
-	soup_uri_free(uri);
 	return;
 }
 ;
-
 
 void main_ui_exec(MyMainui *ui, gpointer *userdata) {
 	op_data *data;
@@ -960,15 +939,16 @@ void main_ui_exec(MyMainui *ui, gpointer *userdata) {
 			io = g_io_channel_new_file(set->source_name, "r", NULL);
 			while (g_io_channel_read_line(io, &str, NULL, NULL,
 			NULL) != G_IO_STATUS_EOF) {
-				task_msg = my_task_message_new(session, str, data->task->data,
-						task_id++);
+				task_msg = my_task_message_new(session, soup_uri_new(str),
+						data->task->data, task_id++);
 				g_thread_pool_push(pool, task_msg, NULL);
 			}
 			g_io_channel_close(io);
 			break;
 		case TASK_SOURCE_URL:
-			task_msg = my_task_message_new(session, set->source_name,
-					data->task->data, task_id++);
+			task_msg = my_task_message_new(session,
+					soup_uri_new(set->source_name), data->task->data,
+					task_id++);
 			g_thread_pool_push(pool, task_msg,
 			NULL);
 			break;

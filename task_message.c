@@ -15,7 +15,7 @@ static void my_task_message_class_init(MyTaskMessageClass *klass) {
 }
 ;
 static void my_task_message_init(MyTaskMessage *self) {
-	self->url = NULL;
+	self->uri = NULL;
 	self->ctxt = NULL;
 	self->doc = NULL;
 	self->msg = NULL;
@@ -23,10 +23,10 @@ static void my_task_message_init(MyTaskMessage *self) {
 }
 ;
 
-MyTaskMessage *my_task_message_new(SoupSession *session,gchar *url,gpointer task,gint id) {
+MyTaskMessage *my_task_message_new(SoupSession *session,SoupURI *uri,gpointer task,gint id) {
 	MyTaskMessage *msg=g_object_new(MY_TYPE_TASK_MESSAGE, NULL);
 	msg->session=g_object_ref(session);
-	msg->url=strdup(url);
+	msg->uri=uri;
 	msg->task=task;
 	msg->id=id;
 	return msg;
@@ -46,7 +46,7 @@ void my_task_message_finalize(MyTaskMessage *self) {
 		xmlFreeDoc(self->doc);
 	if (self->msg != NULL)
 		g_object_unref(self->msg);
-	if (self->url != NULL)
-		g_free(self->url);
+	if (self->uri != NULL)
+		soup_uri_free(self->uri);
 }
 ;

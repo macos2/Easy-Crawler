@@ -21,7 +21,7 @@ typedef struct _MyTaskMessageClass{
 };
 typedef struct _MyTaskMessage{
 	GObject parent_instance;
-	gchar *url;
+	SoupURI *uri;
 	SoupSession *session;
 	SoupMessage *msg;
 	xmlDoc *doc;
@@ -30,7 +30,7 @@ typedef struct _MyTaskMessage{
 	gint id;
 };
 
-MyTaskMessage *my_task_message_new(SoupSession *session,gchar *url,gpointer task,gint id);
+MyTaskMessage *my_task_message_new(SoupSession *session,SoupURI *uri,gpointer task,gint id);
 gboolean my_task_message_free(MyTaskMessage *self);
 G_END_DECLS
 #endif /* TASK_MESSAGE_H_ */

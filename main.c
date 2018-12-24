@@ -31,9 +31,9 @@ gboolean notify_thread_num(MyMainui *ui) {
 		task_finish = FALSE;
 		gchar *str;
 		if (stop_thread == TRUE) {
-			str = g_strdup_printf("已停止运行新线程,等待 %u 线程运行完毕", num);
+			str = g_strdup_printf("已停止运行新线程,等待 %6u 完毕", num);
 		} else {
-			str = g_strdup_printf("%u 线程正在运行", num);
+			str = g_strdup_printf("%6u运行\t%6u待运行...", num,g_thread_pool_unprocessed(pool));
 		}
 		gtk_statusbar_push(status_bar, status_bar_id++, str);
 		g_free(str);
