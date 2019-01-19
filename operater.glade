@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Generated with glade 3.20.2 -->
+<!-- Generated with glade 3.20.0 -->
 <interface>
   <requires lib="gtk+" version="3.20"/>
   <object class="GtkTextBuffer" id="log_buffer"/>
@@ -88,14 +88,12 @@
     <action-widgets>
       <action-widget response="-5">rename_ok</action-widget>
     </action-widgets>
-    <child>
-      <placeholder/>
-    </child>
   </object>
   <template class="MyOperater" parent="GtkBox">
     <property name="visible">True</property>
     <property name="can_focus">False</property>
     <property name="orientation">vertical</property>
+    <property name="baseline_position">top</property>
     <child>
       <object class="GtkEventBox" id="headerbar_event">
         <property name="visible">True</property>
@@ -147,12 +145,13 @@
         <property name="visible">True</property>
         <property name="can_focus">False</property>
         <property name="label_xalign">0</property>
+        <property name="shadow_type">out</property>
         <child>
           <object class="GtkBox" id="content">
             <property name="visible">True</property>
             <property name="can_focus">False</property>
             <property name="orientation">vertical</property>
-            <property name="baseline_position">top</property>
+            <property name="homogeneous">True</property>
             <child>
               <placeholder/>
             </child>
@@ -160,7 +159,7 @@
         </child>
       </object>
       <packing>
-        <property name="expand">True</property>
+        <property name="expand">False</property>
         <property name="fill">True</property>
         <property name="position">1</property>
       </packing>

@@ -103,7 +103,7 @@ static void my_operater_init(MyOperater *self) {
 
 void my_operater_add(MyOperater *self, GtkWidget *child) {
 	MyOperaterPrivate *priv = my_operater_get_instance_private(self);
-	gtk_box_set_spacing(priv->content, gtk_box_get_spacing(priv->content) + 1);
+	//gtk_box_set_spacing(priv->content, gtk_box_get_spacing(priv->content) + 1);
 	gtk_box_pack_start(priv->content, child, TRUE, FALSE, 0);
 }
 ;

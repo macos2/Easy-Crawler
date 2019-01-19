@@ -14,6 +14,14 @@
 #include "MY_DECLARE.h"
 
 G_BEGIN_DECLS
+typedef enum{
+	Get_Begin,
+	Get_Head,
+	Get_Body,
+	Get_Finish,
+	Get_Cancel,
+}Task_Msg_Get_Status;
+
 #define MY_TYPE_TASK_MESSAGE my_task_message_get_type()
 MY_DECLARE_DERIVABLE_TYPE(MyTaskMessage,my_task_message,MY,TASK_MESSAGE,GObject);
 typedef struct _MyTaskMessageClass{
@@ -28,6 +36,12 @@ typedef struct _MyTaskMessage{
 	xmlXPathContext *ctxt;
 	gpointer task;
 	gint id;
+	gchar *filename, *web_title,*charset,*local;
+	void *list_row;
+	gint64 start_time,dl_size,content_size,pre_dlsize;
+	gboolean *cancel;
+	Task_Msg_Get_Status GET_STATUS;
+	GMutex mutex;
 };
 
 MyTaskMessage *my_task_message_new(SoupSession *session,SoupURI *uri,gpointer task,gint id);

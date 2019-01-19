@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Generated with glade 3.20.2 -->
+<!-- Generated with glade 3.20.0 -->
 <interface>
   <requires lib="gtk+" version="3.20"/>
   <template class="MyTaskSetting" parent="GtkDialog">
@@ -101,6 +101,7 @@
                           <object class="GtkEntry" id="url_entry">
                             <property name="visible">True</property>
                             <property name="can_focus">True</property>
+                            <property name="hexpand">True</property>
                             <signal name="activate" handler="gtk_toggle_button_set_active" object="url" swapped="yes"/>
                           </object>
                           <packing>
@@ -110,7 +111,7 @@
                         </child>
                         <child>
                           <object class="GtkRadioButton" id="url">
-                            <property name="label" translatable="yes">URL    </property>
+                            <property name="label" translatable="yes">URI</property>
                             <property name="visible">True</property>
                             <property name="can_focus">True</property>
                             <property name="receives_default">False</property>
@@ -124,7 +125,7 @@
                         </child>
                         <child>
                           <object class="GtkRadioButton" id="input_source">
-                            <property name="label" translatable="yes">输入源  </property>
+                            <property name="label" translatable="yes">上一级任务</property>
                             <property name="visible">True</property>
                             <property name="can_focus">True</property>
                             <property name="receives_default">False</property>
@@ -195,6 +196,7 @@
                           <object class="GtkEntry" id="xpath_entry">
                             <property name="visible">True</property>
                             <property name="can_focus">True</property>
+                            <property name="hexpand">True</property>
                           </object>
                           <packing>
                             <property name="left_attach">1</property>
@@ -236,7 +238,7 @@
                         </child>
                         <child>
                           <object class="GtkCheckButton">
-                            <property name="label" translatable="yes">内容正规表达式寻找</property>
+                            <property name="label" translatable="yes">正规表达式过滤</property>
                             <property name="visible">True</property>
                             <property name="can_focus">True</property>
                             <property name="receives_default">False</property>
@@ -258,7 +260,7 @@
                   <object class="GtkLabel">
                     <property name="visible">True</property>
                     <property name="can_focus">False</property>
-                    <property name="label" translatable="yes">寻找Xpath节点</property>
+                    <property name="label" translatable="yes">Xpath表达式</property>
                   </object>
                 </child>
               </object>
@@ -289,29 +291,12 @@
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
                         <property name="row_spacing">5</property>
-                        <property name="row_homogeneous">True</property>
+                        <property name="column_spacing">5</property>
                         <child>
-                          <object class="GtkRadioButton" id="c_filename">
-                            <property name="label" translatable="yes">文件名  </property>
+                          <object class="GtkLabel">
                             <property name="visible">True</property>
-                            <property name="can_focus">True</property>
-                            <property name="receives_default">False</property>
-                            <property name="draw_indicator">True</property>
-                            <property name="group">a_filename</property>
-                          </object>
-                          <packing>
-                            <property name="left_attach">0</property>
-                            <property name="top_attach">1</property>
-                          </packing>
-                        </child>
-                        <child>
-                          <object class="GtkRadioButton" id="a_filename">
-                            <property name="label" translatable="yes">自动文件</property>
-                            <property name="visible">True</property>
-                            <property name="can_focus">True</property>
-                            <property name="receives_default">False</property>
-                            <property name="active">True</property>
-                            <property name="draw_indicator">True</property>
+                            <property name="can_focus">False</property>
+                            <property name="label" translatable="yes">文件名格式</property>
                           </object>
                           <packing>
                             <property name="left_attach">0</property>
@@ -319,18 +304,26 @@
                           </packing>
                         </child>
                         <child>
-                          <object class="GtkEntry" id="custom_filename">
+                          <object class="GtkEntry" id="fmt_filename">
                             <property name="visible">True</property>
                             <property name="can_focus">True</property>
-                            <signal name="activate" handler="gtk_toggle_button_set_active" object="c_filename" swapped="yes"/>
+                            <property name="tooltip_text" translatable="yes">%w:网页标题 %f:文件原名 %d:输出日期(2099-12-31) %t:输出时间(23H:59M:59S)
+%u:网页URI
+若留空则以‘%f’格式输出,若有同名文件存在则自动添加数字后缀(.dd)。
+example:
+网页标题:abc.com , 文件名:file.txt , 时间:'2019-01-01 15:01:01'
+输出格式:ex-%w-%d_%t==%f
+=&gt;"ex-abc.com-2019-01-01_15:01:01==file.txt"
+</property>
+                            <property name="margin_top">5</property>
+                            <property name="margin_bottom">5</property>
+                            <property name="hexpand">True</property>
+                            <property name="text" translatable="yes">%f</property>
                           </object>
                           <packing>
                             <property name="left_attach">1</property>
-                            <property name="top_attach">1</property>
+                            <property name="top_attach">0</property>
                           </packing>
-                        </child>
-                        <child>
-                          <placeholder/>
                         </child>
                       </object>
                     </child>
@@ -412,18 +405,8 @@
       <action-widget response="-5">button1</action-widget>
       <action-widget response="-6">button2</action-widget>
     </action-widgets>
-    <child>
-      <placeholder/>
-    </child>
   </template>
   <object class="GtkSizeGroup">
     <property name="mode">both</property>
-    <widgets>
-      <widget name="url_entry"/>
-      <widget name="source_filename"/>
-      <widget name="xpath_entry"/>
-      <widget name="prop_entry"/>
-      <widget name="custom_filename"/>
-    </widgets>
   </object>
 </interface>

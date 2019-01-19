@@ -17,7 +17,7 @@ G_DEFINE_TYPE_WITH_CODE(MyMainui, my_mainui, GTK_TYPE_WINDOW,
 		G_ADD_PRIVATE(MyMainui));
 
 void my_mainui_add_clicked(GtkToolButton *button,gpointer userdata);
-void my_mainui_info_clicked(GtkToolButton *button,gpointer userdata);
+void my_mainui_down_info_clicked(GtkToolButton *button,gpointer userdata);
 void my_mainui_exec_clicked(GtkToolButton *button,gpointer userdata);
 void my_mainui_stop_clicked(GtkToolButton *button,gpointer userdata);
 void mainui_open_clicked (GtkMenuItem *item, MyMainui *MyMainui);
@@ -34,14 +34,14 @@ static void my_mainui_class_init(MyMainuiClass *klass) {
 	gtk_widget_class_bind_template_child_private(klass,MyMainui,status_bar);
 	gtk_widget_class_bind_template_callback(klass,my_mainui_show_msg);
 	gtk_widget_class_bind_template_callback(klass,my_mainui_add_clicked);
-	gtk_widget_class_bind_template_callback(klass,my_mainui_info_clicked);
+	gtk_widget_class_bind_template_callback(klass,my_mainui_down_info_clicked);
 	gtk_widget_class_bind_template_callback(klass,my_mainui_exec_clicked);
 	gtk_widget_class_bind_template_callback(klass,mainui_open_clicked);
 	gtk_widget_class_bind_template_callback(klass,mainui_save_clicked);
 	gtk_widget_class_bind_template_callback(klass,mainui_setting_clicked);
 	gtk_widget_class_bind_template_callback(klass,my_mainui_stop_clicked);
 	g_signal_new("add_child",MY_TYPE_MAINUI,G_SIGNAL_RUN_LAST,G_STRUCT_OFFSET(MyMainuiClass,add_child),NULL,NULL,NULL,G_TYPE_NONE,0,NULL);
-	g_signal_new("info",MY_TYPE_MAINUI,G_SIGNAL_RUN_LAST,G_STRUCT_OFFSET(MyMainuiClass,info),NULL,NULL,NULL,G_TYPE_NONE,0,NULL);
+	g_signal_new("down-info",MY_TYPE_MAINUI,G_SIGNAL_RUN_LAST,G_STRUCT_OFFSET(MyMainuiClass,info),NULL,NULL,NULL,G_TYPE_NONE,0,NULL);
 	g_signal_new("exec",MY_TYPE_MAINUI,G_SIGNAL_RUN_LAST,G_STRUCT_OFFSET(MyMainuiClass,exec),NULL,NULL,NULL,G_TYPE_NONE,0,NULL);
 	g_signal_new("stop",MY_TYPE_MAINUI,G_SIGNAL_RUN_LAST,G_STRUCT_OFFSET(MyMainuiClass,stop),NULL,NULL,NULL,G_TYPE_NONE,0,NULL);
 	g_signal_new("open",MY_TYPE_MAINUI,G_SIGNAL_RUN_LAST,G_STRUCT_OFFSET(MyMainuiClass,open),NULL,NULL,NULL,G_TYPE_NONE,0,NULL);
@@ -69,8 +69,8 @@ MyMainui *my_mainui_new(){
 void my_mainui_add_clicked(GtkToolButton *button,gpointer userdata){
 g_signal_emit_by_name(userdata,"add_child",NULL);
 };
-void my_mainui_info_clicked(GtkToolButton *button,gpointer userdata){
-	g_signal_emit_by_name(userdata,"info",NULL);
+void my_mainui_down_info_clicked(GtkToolButton *button,gpointer userdata){
+	g_signal_emit_by_name(userdata,"down-info",NULL);
 };
 
 void my_mainui_exec_clicked(GtkToolButton *button,gpointer userdata){

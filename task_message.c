@@ -20,6 +20,15 @@ static void my_task_message_init(MyTaskMessage *self) {
 	self->doc = NULL;
 	self->msg = NULL;
 	self->session = NULL;
+	self->filename=NULL;
+	self->web_title=NULL;
+	self->list_row=NULL;
+	self->dl_size=0;
+	self->start_time=0;
+	self->cancel=NULL;
+	self->charset=NULL;
+	self->local=NULL;
+	g_mutex_init(&self->mutex);
 }
 ;
 
@@ -39,6 +48,7 @@ gboolean my_task_message_free(MyTaskMessage *self) {
 ;
 
 void my_task_message_finalize(MyTaskMessage *self) {
+	g_print("Finalize:%d-%s\n",self->id,self->filename);
 	g_object_unref(self->session);
 	if (self->ctxt != NULL)
 		xmlXPathFreeContext(self->ctxt);
@@ -48,5 +58,11 @@ void my_task_message_finalize(MyTaskMessage *self) {
 		g_object_unref(self->msg);
 	if (self->uri != NULL)
 		soup_uri_free(self->uri);
+	if(self->filename!=NULL)
+		g_free(self->filename);
+	if(self->web_title!=NULL)
+		g_free(self->web_title);
+	if(self->charset!=NULL)g_free(self->charset);
+	g_free(self->local);
 }
 ;

@@ -9,8 +9,8 @@
 #include "gresource.h"
 
 typedef struct {
-	GtkRadioButton *url, *source_file, *input_source, *c_filename, *a_filename;
-	GtkEntry *url_entry, *xpath_entry, *prop_entry, *custom_filename;
+	GtkRadioButton *url, *source_file, *input_source;
+	GtkEntry *url_entry, *xpath_entry, *prop_entry,*fmt_filename;
 	GtkFileChooserButton *source_filename;
 	GtkCheckButton *xpath_check, *file_check, *terminal_check,
 			*output_xpathprop;
@@ -31,17 +31,13 @@ static void my_task_setting_class_init(MyTaskSettingClass *klass) {
 	gtk_widget_class_bind_template_child_private(klass, MyTaskSetting,
 			input_source);
 	gtk_widget_class_bind_template_child_private(klass, MyTaskSetting,
-			c_filename);
-	gtk_widget_class_bind_template_child_private(klass, MyTaskSetting,
-			a_filename);
+			fmt_filename);
 	gtk_widget_class_bind_template_child_private(klass, MyTaskSetting,
 			url_entry);
 	gtk_widget_class_bind_template_child_private(klass, MyTaskSetting,
 			xpath_entry);
 	gtk_widget_class_bind_template_child_private(klass, MyTaskSetting,
 			prop_entry);
-	gtk_widget_class_bind_template_child_private(klass, MyTaskSetting,
-			custom_filename);
 	gtk_widget_class_bind_template_child_private(klass, MyTaskSetting,
 			source_filename);
 	gtk_widget_class_bind_template_child_private(klass, MyTaskSetting,
@@ -57,7 +53,7 @@ static void my_task_setting_class_init(MyTaskSettingClass *klass) {
 static void my_task_setting_init(MyTaskSetting *self) {
 	gtk_widget_init_template(self);
 	self->priv = my_task_setting_get_instance_private(self);
-	self->set.output_filename = NULL;
+	self->set.fmt_filename = NULL;
 	self->set.source_name = NULL;
 	self->set.xpath = NULL;
 }
@@ -86,10 +82,7 @@ MyTaskSetting *my_task_setting_new(task_set *set) {
 		gtk_entry_set_text(priv->prop_entry, set->output_xpathprop);
 	}
 	gtk_entry_set_text(priv->xpath_entry, set->xpath);
-	gtk_toggle_button_set_active(priv->a_filename, set->auto_filename);
-	gtk_toggle_button_set_active(priv->c_filename, !set->auto_filename);
-	if (set->auto_filename != TRUE)
-		gtk_entry_set_text(priv->custom_filename, set->output_filename);
+	gtk_entry_set_text(priv->fmt_filename,set->fmt_filename);
 	return setting;
 }
 ;
@@ -100,9 +93,9 @@ void my_task_setting_get_set(MyTaskSetting *self, task_set *set) {
 		g_free(set->source_name);
 		set->source_name = NULL;
 	};
-	if (set->output_filename != NULL) {
-		g_free(set->output_filename);
-		set->output_filename = NULL;
+	if (set->fmt_filename != NULL) {
+		g_free(set->fmt_filename);
+		set->fmt_filename = NULL;
 	};
 	if (set->output_xpathprop != NULL) {
 		g_free(set->output_xpathprop);
@@ -125,9 +118,8 @@ void my_task_setting_get_set(MyTaskSetting *self, task_set *set) {
 	set->output_xpath = gtk_toggle_button_get_active(priv->output_xpathprop);
 	set->output_xpathprop = g_strdup(gtk_entry_get_text(priv->prop_entry));
 	set->output_file = gtk_toggle_button_get_active(priv->file_check);
-	set->output_filename = g_strdup(gtk_entry_get_text(priv->custom_filename));
-	set->auto_filename = gtk_toggle_button_get_active(priv->a_filename);
 	set->terminal_print = gtk_toggle_button_get_active(priv->terminal_check);
+	set->fmt_filename=g_strdup(gtk_entry_get_text(priv->fmt_filename));
 }
 ;
 

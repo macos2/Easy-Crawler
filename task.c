@@ -146,14 +146,14 @@ void my_task_get_property(GObject *object, guint property_id, GValue *value,
 		g_value_set_string(value, priv->name->str);
 		break;
 	case task_icon:
-		gtk_image_get_icon_name(priv->icon, &img_name, GTK_ICON_SIZE_LARGE_TOOLBAR);
+		gtk_image_get_icon_name(priv->icon, &img_name, GTK_ICON_SIZE_BUTTON);
 		g_value_set_string(value, img_name);
 		break;
 	case task_label:
 		g_value_set_string(value, gtk_label_get_label(priv->label));
 		break;
 	case task_next:
-		gtk_image_get_icon_name(priv->next, &img_name, GTK_ICON_SIZE_LARGE_TOOLBAR);
+		gtk_image_get_icon_name(priv->next, &img_name, GTK_ICON_SIZE_BUTTON);
 		if (g_strcmp0("gtk-discard", img_name) == 0) {
 			g_value_set_boolean(value, FALSE);
 		} else {
@@ -162,7 +162,7 @@ void my_task_get_property(GObject *object, guint property_id, GValue *value,
 		;
 		break;
 	case task_state:
-		gtk_image_get_icon_name(priv->icon, &img_name, GTK_ICON_SIZE_LARGE_TOOLBAR);
+		gtk_image_get_icon_name(priv->icon, &img_name, GTK_ICON_SIZE_BUTTON);
 		g_value_set_string(value, img_name);
 		break;
 	default:
@@ -181,21 +181,21 @@ void my_task_set_property(GObject *object, guint property_id,
 		break;
 	case task_icon:
 		gtk_image_set_from_icon_name(priv->icon, g_value_get_string(value),
-				GTK_ICON_SIZE_LARGE_TOOLBAR);
+				GTK_ICON_SIZE_BUTTON);
 		break;
 	case task_label:
 		gtk_label_set_label(priv->label, g_value_get_string(value));
 		break;
 	case task_next:
 		gtk_image_set_from_icon_name(priv->next, "",
-				GTK_ICON_SIZE_LARGE_TOOLBAR);
+				GTK_ICON_SIZE_BUTTON);
 		if (g_value_get_boolean(value))
 			gtk_image_set_from_icon_name(priv->next,"go-next",
-					GTK_ICON_SIZE_LARGE_TOOLBAR);
+					GTK_ICON_SIZE_BUTTON);
 		break;
 	case task_state:
 		gtk_image_set_from_icon_name(priv->state, g_value_get_string(value),
-				GTK_ICON_SIZE_LARGE_TOOLBAR);
+				GTK_ICON_SIZE_BUTTON);
 		break;
 	default:
 		G_OBJECT_WARN_INVALID_PROPERTY_ID(object, property_id, pspec);

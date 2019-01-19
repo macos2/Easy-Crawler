@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Generated with glade 3.20.2 -->
+<!-- Generated with glade 3.20.0 -->
 <interface>
   <requires lib="gtk+" version="3.20"/>
   <template class="MyMainui" parent="GtkWindow">
@@ -139,13 +139,13 @@
               </packing>
             </child>
             <child>
-              <object class="GtkToolButton" id="info">
+              <object class="GtkToolButton" id="down_info">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
                 <property name="label" translatable="yes">info</property>
                 <property name="use_underline">True</property>
-                <property name="icon_name">utilities-system-monitor-symbolic</property>
-                <signal name="clicked" handler="my_mainui_info_clicked" object="MyMainui" swapped="no"/>
+                <property name="icon_name">document-save-symbolic</property>
+                <signal name="clicked" handler="my_mainui_down_info_clicked" object="MyMainui" swapped="no"/>
               </object>
               <packing>
                 <property name="expand">False</property>
@@ -255,9 +255,6 @@ Easy Crawler is a Web Crawler Program with GTK gui.
         </child>
       </object>
     </child>
-    <child>
-      <placeholder/>
-    </child>
   </object>
   <object class="GtkDialog" id="donate_dialog">
     <property name="can_focus">False</property>
@@ -340,9 +337,6 @@ Easy Crawler is a Web Crawler Program with GTK gui.
           </packing>
         </child>
       </object>
-    </child>
-    <child>
-      <placeholder/>
     </child>
   </object>
 </interface>
