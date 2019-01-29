@@ -19,7 +19,7 @@ enum{
 
 typedef struct {
 	guint source;
-	gchar *xpath,*output_xpathprop,*source_name,*fmt_filename;
+	gchar *xpath,*source_name,*fmt_filename;
 	gboolean search_xpath,output_xpath,output_file,terminal_print;
 }task_set;
 

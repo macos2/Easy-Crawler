@@ -1,11 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Generated with glade 3.20.0 -->
+<!-- Generated with glade 3.22.1 -->
 <interface>
   <requires lib="gtk+" version="3.20"/>
   <template class="MyMainui" parent="GtkWindow">
     <property name="can_focus">False</property>
     <property name="default_width">800</property>
     <property name="default_height">600</property>
+    <child type="titlebar">
+      <placeholder/>
+    </child>
     <child>
       <object class="GtkBox">
         <property name="visible">True</property>
@@ -221,9 +224,6 @@
         </child>
       </object>
     </child>
-    <child type="titlebar">
-      <placeholder/>
-    </child>
   </template>
   <object class="GtkAboutDialog" id="about_dialog">
     <property name="can_focus">False</property>
@@ -231,12 +231,15 @@
     <property name="type_hint">dialog</property>
     <property name="transient_for">MyMainui</property>
     <property name="program_name">Easy Crawler</property>
-    <property name="comments" translatable="yes">易爬 是带GTK界面的网络爬虫软件。
+    <property name="comments" translatable="yes">带GTK界面的网络爬虫软件。
 Easy Crawler is a Web Crawler Program with GTK gui.
 软件只提供用户学习使用，软件造成用户任何损失与作者无关。</property>
     <property name="logo_icon_name">applications-internet</property>
     <signal name="delete-event" handler="gtk_widget_hide" swapped="no"/>
     <signal name="response" handler="gtk_widget_hide" swapped="no"/>
+    <child>
+      <placeholder/>
+    </child>
     <child internal-child="vbox">
       <object class="GtkBox">
         <property name="can_focus">False</property>
@@ -265,6 +268,9 @@ Easy Crawler is a Web Crawler Program with GTK gui.
     <property name="transient_for">MyMainui</property>
     <signal name="delete-event" handler="gtk_widget_hide" swapped="no"/>
     <signal name="response" handler="gtk_widget_hide" swapped="no"/>
+    <child>
+      <placeholder/>
+    </child>
     <child internal-child="vbox">
       <object class="GtkBox">
         <property name="can_focus">False</property>

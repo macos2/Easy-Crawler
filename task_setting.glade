@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Generated with glade 3.20.0 -->
+<!-- Generated with glade 3.22.1 -->
 <interface>
   <requires lib="gtk+" version="3.20"/>
   <template class="MyTaskSetting" parent="GtkDialog">
@@ -10,6 +10,9 @@
     <property name="default_height">-1</property>
     <property name="type_hint">dialog</property>
     <property name="deletable">False</property>
+    <child>
+      <placeholder/>
+    </child>
     <child internal-child="vbox">
       <object class="GtkBox">
         <property name="can_focus">False</property>
@@ -102,7 +105,7 @@
                             <property name="visible">True</property>
                             <property name="can_focus">True</property>
                             <property name="hexpand">True</property>
-                            <signal name="activate" handler="gtk_toggle_button_set_active" object="url" swapped="yes"/>
+                            <signal name="changed" handler="gtk_toggle_button_set_active" object="url" swapped="yes"/>
                           </object>
                           <packing>
                             <property name="left_attach">1</property>
@@ -193,27 +196,6 @@
                         <property name="row_spacing">5</property>
                         <property name="row_homogeneous">True</property>
                         <child>
-                          <object class="GtkEntry" id="xpath_entry">
-                            <property name="visible">True</property>
-                            <property name="can_focus">True</property>
-                            <property name="hexpand">True</property>
-                          </object>
-                          <packing>
-                            <property name="left_attach">1</property>
-                            <property name="top_attach">0</property>
-                          </packing>
-                        </child>
-                        <child>
-                          <object class="GtkEntry" id="prop_entry">
-                            <property name="visible">True</property>
-                            <property name="can_focus">True</property>
-                          </object>
-                          <packing>
-                            <property name="left_attach">1</property>
-                            <property name="top_attach">1</property>
-                          </packing>
-                        </child>
-                        <child>
                           <object class="GtkCheckButton" id="output_xpathprop">
                             <property name="label" translatable="yes">输出属性</property>
                             <property name="visible">True</property>
@@ -227,30 +209,24 @@
                           </packing>
                         </child>
                         <child>
-                          <object class="GtkEntry">
+                          <object class="GtkEntry" id="xpath_entry">
                             <property name="visible">True</property>
                             <property name="can_focus">True</property>
-                          </object>
-                          <packing>
-                            <property name="left_attach">1</property>
-                            <property name="top_attach">2</property>
-                          </packing>
-                        </child>
-                        <child>
-                          <object class="GtkCheckButton">
-                            <property name="label" translatable="yes">正规表达式过滤</property>
-                            <property name="visible">True</property>
-                            <property name="can_focus">True</property>
-                            <property name="receives_default">False</property>
-                            <property name="draw_indicator">True</property>
+                            <property name="tooltip_text" translatable="yes">example:
+&lt;a href='http://www.abc.com' id='example1'&gt;content1&lt;/a&gt;
+&lt;a href='http://www.efg.com' id='example2'&gt;content2&lt;/a&gt;
+
+//a : "content1","content2";
+//a/text() : "content1","content2";
+//a[0]/@href  : "http://www.abc.com";
+//a[0]/attribute::* : "http://www.abc.com","example1";
+//@id : "example1", "example2".</property>
+                            <property name="hexpand">True</property>
                           </object>
                           <packing>
                             <property name="left_attach">0</property>
-                            <property name="top_attach">2</property>
+                            <property name="top_attach">0</property>
                           </packing>
-                        </child>
-                        <child>
-                          <placeholder/>
                         </child>
                       </object>
                     </child>

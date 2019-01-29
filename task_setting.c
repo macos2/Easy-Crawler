@@ -10,7 +10,7 @@
 
 typedef struct {
 	GtkRadioButton *url, *source_file, *input_source;
-	GtkEntry *url_entry, *xpath_entry, *prop_entry,*fmt_filename;
+	GtkEntry *url_entry, *xpath_entry,*fmt_filename;
 	GtkFileChooserButton *source_filename;
 	GtkCheckButton *xpath_check, *file_check, *terminal_check,
 			*output_xpathprop;
@@ -36,8 +36,6 @@ static void my_task_setting_class_init(MyTaskSettingClass *klass) {
 			url_entry);
 	gtk_widget_class_bind_template_child_private(klass, MyTaskSetting,
 			xpath_entry);
-	gtk_widget_class_bind_template_child_private(klass, MyTaskSetting,
-			prop_entry);
 	gtk_widget_class_bind_template_child_private(klass, MyTaskSetting,
 			source_filename);
 	gtk_widget_class_bind_template_child_private(klass, MyTaskSetting,
@@ -79,7 +77,6 @@ MyTaskSetting *my_task_setting_new(task_set *set) {
 	gtk_toggle_button_set_active(priv->file_check, set->output_file);
 	if (set->output_xpath) {
 		gtk_toggle_button_set_active(priv->output_xpathprop, TRUE);
-		gtk_entry_set_text(priv->prop_entry, set->output_xpathprop);
 	}
 	gtk_entry_set_text(priv->xpath_entry, set->xpath);
 	gtk_entry_set_text(priv->fmt_filename,set->fmt_filename);
@@ -97,10 +94,6 @@ void my_task_setting_get_set(MyTaskSetting *self, task_set *set) {
 		g_free(set->fmt_filename);
 		set->fmt_filename = NULL;
 	};
-	if (set->output_xpathprop != NULL) {
-		g_free(set->output_xpathprop);
-		set->output_xpathprop = NULL;
-	};
 	if (set->xpath != NULL) {
 		g_free(set->xpath);
 		set->xpath = NULL;
@@ -116,7 +109,6 @@ void my_task_setting_get_set(MyTaskSetting *self, task_set *set) {
 	set->search_xpath = gtk_toggle_button_get_active(priv->xpath_check);
 	set->xpath = g_strdup(gtk_entry_get_text(priv->xpath_entry));
 	set->output_xpath = gtk_toggle_button_get_active(priv->output_xpathprop);
-	set->output_xpathprop = g_strdup(gtk_entry_get_text(priv->prop_entry));
 	set->output_file = gtk_toggle_button_get_active(priv->file_check);
 	set->terminal_print = gtk_toggle_button_get_active(priv->terminal_check);
 	set->fmt_filename=g_strdup(gtk_entry_get_text(priv->fmt_filename));

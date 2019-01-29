@@ -31,16 +31,17 @@ typedef struct _MyTaskMessage{
 	GObject parent_instance;
 	SoupURI *uri;
 	SoupSession *session;
-	SoupMessage *msg;
+	//SoupMessage *msg;
 	xmlDoc *doc;
 	xmlXPathContext *ctxt;
 	gpointer task;
 	gint id;
-	gchar *filename, *web_title,*charset,*local;
+	gchar *filename, *web_title,*charset,*local,*reponse_body,*suggest_filename;
 	void *list_row;
 	gint64 start_time,dl_size,content_size,pre_dlsize;
 	gboolean *cancel;
 	Task_Msg_Get_Status GET_STATUS;
+	SoupStatus soup_status;
 	GMutex mutex;
 };
 

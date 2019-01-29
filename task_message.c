@@ -18,7 +18,6 @@ static void my_task_message_init(MyTaskMessage *self) {
 	self->uri = NULL;
 	self->ctxt = NULL;
 	self->doc = NULL;
-	self->msg = NULL;
 	self->session = NULL;
 	self->filename=NULL;
 	self->web_title=NULL;
@@ -28,6 +27,8 @@ static void my_task_message_init(MyTaskMessage *self) {
 	self->cancel=NULL;
 	self->charset=NULL;
 	self->local=NULL;
+	self->reponse_body=NULL;
+	self->suggest_filename=NULL;
 	g_mutex_init(&self->mutex);
 }
 ;
@@ -54,8 +55,6 @@ void my_task_message_finalize(MyTaskMessage *self) {
 		xmlXPathFreeContext(self->ctxt);
 	if (self->doc != NULL)
 		xmlFreeDoc(self->doc);
-	if (self->msg != NULL)
-		g_object_unref(self->msg);
 	if (self->uri != NULL)
 		soup_uri_free(self->uri);
 	if(self->filename!=NULL)
@@ -64,5 +63,7 @@ void my_task_message_finalize(MyTaskMessage *self) {
 		g_free(self->web_title);
 	if(self->charset!=NULL)g_free(self->charset);
 	g_free(self->local);
+	g_free(self->reponse_body);
+	g_free(self->suggest_filename);
 }
 ;

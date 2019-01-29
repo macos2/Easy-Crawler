@@ -41,6 +41,7 @@ GMutex *log_mutex, *log_task_href_mutex;
 GMutex notify_download_mutex;
 gboolean stop_thread;
 MyDownloadUi *down_ui;
+MyCurl *mycurl;
 GtkWindow *down_win;
 GRegex *fmt_filename_date, *fmt_filename_time, *fmt_filename_title,
 		*fmt_filename_org, *fmt_filename_uri;
@@ -101,7 +102,6 @@ void task_remove_task(MyTask *self, GtkWidget *parent, gpointer userdata) {
 	data->task = g_list_remove(data->task, self);
 	set = g_hash_table_lookup(data->task_set, self);
 	g_free(set->fmt_filename);
-	g_free(set->output_xpathprop);
 	g_free(set->source_name);
 	g_free(set->xpath);
 	g_free(set);
@@ -188,7 +188,7 @@ void task_update_status(MyTask *self, task_set *set) {
 	if (set->search_xpath == TRUE) {
 		gtk_image_set_from_icon_name(my_task_get_icon(self),
 				"system-search-symbolic", GTK_ICON_SIZE_LARGE_TOOLBAR);
-		str = g_strdup_printf("%s/[@%s]", set->xpath, set->output_xpathprop);
+		str = g_strdup_printf("%s", set->xpath);
 		gtk_label_set_text(my_task_get_label(self), str);
 		g_free(str);
 	} else {
@@ -229,12 +229,11 @@ MyTask * operater_add_task(MyOperater *self, gpointer userdata) {
 	data->task = g_list_append(data->task, task);
 	g_hash_table_insert(data->task_set, task, set);
 	set->source_name = g_strdup("");
-	set->xpath = g_strdup("//a");
+	set->xpath = g_strdup("//a/@href");
 	set->output_file = FALSE;
 	set->search_xpath = TRUE;
 	set->terminal_print = FALSE;
 	set->output_xpath = TRUE;
-	set->output_xpathprop = g_strdup("href");
 	set->fmt_filename = g_strdup("%f");
 	set->source = TASK_SOURCE_LINKER;
 	g_signal_connect(task, "remove_task", task_remove_task, data);
@@ -356,7 +355,7 @@ gchar * main_ui_read_string(GInputStream *in) {
 	g_input_stream_read(in, &i, sizeof(size_t), NULL, NULL);
 	if (i == 0)
 		return g_strdup("");
-	gchar *str = g_malloc0(i);
+	gchar *str = g_malloc0(i+1);
 	g_input_stream_read(in, str, i, NULL, NULL);
 	return str;
 }
@@ -397,7 +396,6 @@ void task_set_read_from_file(task_set *set, GInputStream *in) {
 	g_input_stream_read(in, &(set->terminal_print), sizeof(gboolean), NULL,
 	NULL);
 	set->fmt_filename = main_ui_read_string(in);
-	set->output_xpathprop = main_ui_read_string(in);
 	set->source_name = main_ui_read_string(in);
 	set->xpath = main_ui_read_string(in);
 	g_input_stream_read(in, &(set->source), sizeof(guint), NULL, NULL);
@@ -415,7 +413,6 @@ void task_set_save_to_file(task_set *set, GOutputStream *out) {
 	NULL);
 
 	main_ui_save_string(set->fmt_filename, out);
-	main_ui_save_string(set->output_xpathprop, out);
 	main_ui_save_string(set->source_name, out);
 	main_ui_save_string(set->xpath, out);
 	g_output_stream_write(out, &(set->source), sizeof(guint), NULL, NULL);
@@ -680,19 +677,46 @@ void main_ui_stop(MyMainui *ui, gpointer userdata) {
 	g_mutex_unlock(log_task_href_mutex);
 }
 
-void main_log(MyOperater *op, gchar *log) {
+void main_log(MyTaskMessage *msg, gchar *format, ...) {
+	static gchar buf[4096];
+	gchar *log_filename;
+	gint i = 0;
+	op_data *data = task_get_opdata(msg->task);
+	va_list va;
+	va_start(va, format);
+	GIOStatus io_status;
 	g_mutex_lock(log_mutex);
-	gchar *title = my_operater_get_title(op);
-	gchar *str = g_strdup_printf("Operater:%s--%s", title, log);
-	g_io_channel_write_chars(log_file, str, -1, NULL, NULL);
-	g_io_channel_flush(log_file, NULL);
-	g_free(str);
+	i = g_vsnprintf(buf, 4096, format, va);
+	if (i > 0) {
+		gchar *op_title = my_operater_get_title(data->operater);
+		gchar *str = g_strdup_printf("Op%s:%d--%s\n\n", op_title, msg->id, buf);
+		io_status = g_io_channel_write_chars(log_file, str, -1, NULL, NULL);
+		switch (io_status) {
+		case G_IO_STATUS_AGAIN:
+		case G_IO_STATUS_ERROR:
+			g_io_channel_unref(log_file);
+			log_filename = g_strdup_printf("%s/log.txt", OUTPUT_DIR);
+			log_file = g_io_channel_new_file(log_filename, "a+", NULL);
+			g_free(log_filename);
+			if (log_file == NULL)
+				g_printerr("Log file is unavailable\n");
+			else
+				g_io_channel_write_chars(log_file, str, -1, NULL, NULL);
+			break;
+		case G_IO_STATUS_NORMAL:
+		case G_IO_STATUS_EOF:
+		default:
+			break;
+		}
+		g_io_channel_flush(log_file, NULL);
+		g_free(str);
+	}
 	g_mutex_unlock(log_mutex);
+	va_end(va);
 }
 
 xmlXPathObject *task_thread_search_xpath(task_set *set,
 		MyTaskMessage *task_msg) {
-	SoupMessage *msg = task_msg->msg;
 	if (set->search_xpath != TRUE)
 		return NULL;
 	xmlXPathObject *xobj = xmlXPathEvalExpression(set->xpath, task_msg->ctxt);
@@ -703,7 +727,6 @@ xmlXPathObject *task_thread_search_xpath(task_set *set,
 char *task_thread_output_file_setname(task_set *set, MyTaskMessage *task_msg) {
 	gint i = 0;
 	GHashTable *head_table;
-	SoupMessageHeaders *msg_head;
 	GFile *file;
 	gchar *name = NULL, **urlv, *abs_name, *name_temp, *time = NULL, *date =
 	NULL, *title =
@@ -714,18 +737,11 @@ char *task_thread_output_file_setname(task_set *set, MyTaskMessage *task_msg) {
 	//%f参数和%u参数
 	if (g_strstr_len(set->fmt_filename, -1, "%f") != NULL
 			|| g_strstr_len(set->fmt_filename, -1, "%u") != NULL) {
-		msg_head = task_msg->msg->response_headers;
-		if (soup_message_headers_get_content_disposition(msg_head, &dis_type,
-				&head_table)) {
-			if (g_strcmp0(dis_type, "attachment") == 0) { //从文件头中获取推荐文件名
-				name = g_strdup(g_hash_table_lookup(head_table, "filename"));
-			}
-			g_hash_table_unref(head_table);
-		}
 		uri_temp = soup_uri_to_string(task_msg->uri, FALSE);
 		urlv = g_strsplit(uri_temp, G_DIR_SEPARATOR_S, -1);
 		uri = g_strjoinv("|", urlv);
 
+		name=g_strdup(task_msg->suggest_filename);
 		if (name == NULL) { //从uri中获取文件名
 			file = g_file_new_for_path(uri_temp);
 			name = g_file_get_basename(file);
@@ -806,9 +822,8 @@ char *task_thread_output_file_setname(task_set *set, MyTaskMessage *task_msg) {
 void task_thread_output_file(task_set *set, MyTaskMessage *task_msg,
 		gchar *xpath_result) {
 	gchar *output_dir = my_download_ui_get_default_dir(down_ui);
-	gchar *name = g_strdup_printf("%s%s%s", task_msg->local, G_DIR_SEPARATOR_S,
+	gchar *name = g_strdup_printf("%s%s%s", output_dir, G_DIR_SEPARATOR_S,
 			task_msg->filename);
-	SoupMessage *msg = task_msg->msg;
 	GIOChannel *io;
 	if (set->search_xpath) {
 		if (g_strcmp0("", xpath_result) != 0)
@@ -821,8 +836,8 @@ void task_thread_output_file(task_set *set, MyTaskMessage *task_msg,
 				g_file_set_contents(name, xpath_result, -1, NULL);
 			}
 	} else {
-		g_file_set_contents(name, msg->response_body->data,
-				msg->response_body->length, NULL);
+		g_file_set_contents(name, task_msg->reponse_body,
+				task_msg->content_size, NULL);
 	}
 	g_free(name);
 	g_free(output_dir);
@@ -839,7 +854,7 @@ void task_thread_terminal_print(task_set *set, MyTaskMessage *task_msg,
 					temp, set->xpath, xpath_result);
 		} else {
 			g_print("#####URL:\"%s\"\n#####Response:\n", temp);
-			printf("%s\n", task_msg->msg->response_body->data);
+			printf("%s\n", task_msg->reponse_body);
 		}
 	};
 	g_free(temp);
@@ -852,14 +867,15 @@ void task_thread_download_got_head(SoupMessage *msg, MyTaskMessage *task_msg) {
 	GHashTable *type_table;
 	task_set *set = task_get_set(task_msg->task);
 	gchar *local = task_msg->local;
-	gchar *temp1, *temp2;
+	gchar *temp1, *temp2,*dis_type;
+	GHashTable *head_table;
 	guint i = 0;
 	GDateTime *time = g_date_time_new_now_local();
 	FILE *f;
 	g_mutex_lock(&task_msg->mutex);
 	task_msg->GET_STATUS = Get_Head;
 	mime_type = soup_message_headers_get_content_type(
-			task_msg->msg->response_headers, &type_table);
+			msg->response_headers, &type_table);
 	if (mime_type != NULL) {
 		if (g_strstr_len(mime_type, -1, "text") != NULL) {
 			task_msg->charset = g_strdup(
@@ -888,8 +904,15 @@ void task_thread_download_got_head(SoupMessage *msg, MyTaskMessage *task_msg) {
 		g_hash_table_unref(type_table);
 	}
 	g_free(mime_type);
-	task_msg->content_size = soup_message_headers_get_content_length(
-			msg->response_headers);
+
+	if (soup_message_headers_get_content_disposition(msg->response_headers, &dis_type,
+			&head_table)) {
+		if (g_strcmp0(dis_type, "attachment") == 0) { //从文件头中获取推荐文件名
+			task_msg->suggest_filename = g_strdup(g_hash_table_lookup(head_table, "filename"));
+		}
+		g_hash_table_unref(head_table);
+	}
+
 	task_msg->filename = task_thread_output_file_setname(set, task_msg);
 	temp1 = g_strdup_printf("%s%s%s", local, G_DIR_SEPARATOR_S,
 			task_msg->filename);
@@ -898,7 +921,7 @@ void task_thread_download_got_head(SoupMessage *msg, MyTaskMessage *task_msg) {
 		switch (op) {
 		case add_suffix:
 			temp2 = NULL;
-			i=0;
+			i = 0;
 			while (g_access(temp1, F_OK) == 0) {
 				g_free(temp1);
 				g_free(temp2);
@@ -906,8 +929,8 @@ void task_thread_download_got_head(SoupMessage *msg, MyTaskMessage *task_msg) {
 				temp1 = g_strdup_printf("%s%s%s", local, G_DIR_SEPARATOR_S,
 						temp2);
 			}
-			f=fopen(temp1,"w+");
-			fwrite("a",sizeof(char),1,f);
+			f = fopen(temp1, "w+");
+			fwrite("a", sizeof(char), 1, f);
 			fclose(f);
 			g_free(task_msg->filename);
 			task_msg->filename = g_strdup(temp2);
@@ -924,7 +947,7 @@ void task_thread_download_got_head(SoupMessage *msg, MyTaskMessage *task_msg) {
 	g_free(temp1);
 	task_msg->start_time = g_date_time_to_unix(time);
 	if (task_msg->cancel) {
-		soup_session_cancel_message(task_msg->session, task_msg->msg,
+		soup_session_cancel_message(task_msg->session, msg,
 				SOUP_STATUS_CANCELLED);
 		task_msg->GET_STATUS = Get_Cancel;
 	}
@@ -938,21 +961,20 @@ void task_thread_download_notify(SoupMessage *msg, SoupBuffer *chunk,
 		return; //下载已经取消
 	g_mutex_lock(&task_msg->mutex);
 	task_msg->dl_size += chunk->length;
-	task_msg->GET_STATUS=Get_Body;
+	task_msg->GET_STATUS = Get_Body;
 	g_mutex_unlock(&task_msg->mutex);
 }
 
 void task_thread_download_finish(SoupMessage *msg, MyTaskMessage *task_msg) {
 	g_mutex_lock(&task_msg->mutex);
-	task_msg->GET_STATUS=Get_Finish;
+	task_msg->GET_STATUS = Get_Finish;
 	g_mutex_unlock(&task_msg->mutex);
 }
 
 void task_thread_load_html_doc(MyTaskMessage *task_msg, task_set *set) {
-	SoupMessage *msg = task_msg->msg;
 	gchar *url = soup_uri_to_string(task_msg->uri, FALSE);
-	xmlDoc *doc = htmlReadMemory(msg->response_body->data,
-			msg->response_body->length, url, task_msg->charset,
+	xmlDoc *doc = htmlReadMemory(task_msg->reponse_body,
+			task_msg->content_size, url, task_msg->charset,
 			HTML_PARSE_RECOVER | HTML_PARSE_NOERROR);
 	xmlXPathContext *ctxt = xmlXPathNewContext(doc);
 	task_msg->doc = doc;
@@ -963,12 +985,12 @@ void task_thread_load_html_doc(MyTaskMessage *task_msg, task_set *set) {
 guint task_thread_send_message(MyTaskMessage *task_msg) {
 	gchar *time_fmt, *uri_fmt;
 	task_set *set = task_get_set(task_msg->task);
-	task_msg->msg = soup_message_new_from_uri("GET", task_msg->uri);
-	SoupMessage *msg = task_msg->msg;
+	SoupMessage *msg = soup_message_new_from_uri("GET", task_msg->uri);
 	task_msg->cancel = FALSE;
+	guint state = SOUP_STATUS_NONE;
 	//task_msg->local = my_download_ui_get_default_dir(down_ui);
 	if (!set->search_xpath && set->output_file) { //任务只是简单的下载文件任务，设置以下内容；
-		task_msg->list_row =NULL;
+		task_msg->list_row = NULL;
 		task_msg->GET_STATUS = Get_Begin;
 		//g_signal_connect(task_msg->msg, "got-chunk",task_thread_download_notify, task_msg);
 		//g_signal_connect(task_msg->msg, "finished", task_thread_download_finish,task_msg);
@@ -977,10 +999,18 @@ guint task_thread_send_message(MyTaskMessage *task_msg) {
 		//g_object_ref(task_msg);
 		//g_mutex_unlock(&notify_download_mutex);
 	}
-	g_signal_connect(task_msg->msg, "got-headers",
-			task_thread_download_got_head, task_msg);
+	/*g_signal_connect(task_msg->msg, "got-headers",
+	 task_thread_download_got_head, task_msg);*/
 //获取页面内容
-	return soup_session_send_message(task_msg->session, task_msg->msg);
+	state = soup_session_send_message(task_msg->session, msg);
+	if (state == SOUP_STATUS_OK){
+		task_msg->reponse_body=g_strdup(msg->response_body->data);
+		task_msg->content_size=strlen(task_msg->reponse_body);
+		task_thread_download_got_head(msg, task_msg);
+	}
+	task_msg->soup_status=state;
+	//g_object_unref(msg);
+	return state;
 }
 
 void task_thread(MyTaskMessage *task_msg, gpointer userdata) {
@@ -990,16 +1020,17 @@ void task_thread(MyTaskMessage *task_msg, gpointer userdata) {
 	xmlXPathObject *xpobj;
 	xmlNodeSet *ns;
 	GString *str;
-	gchar *content, *prop, *result, *temp, *temp2;
+	gchar *content, *result, *temp, *temp2;
 	gint i;
 	guint status;
 	GList *task_list, *task_link;
 	MyTaskMessage *sub_task_msg;
+	SoupURI *uri;
 	if (stop_thread == TRUE) {
 		my_task_message_free(task_msg);
 		return;
 	}
-	g_print("%3d task_begin\n",task_msg->id);
+	g_print("%3d task_begin\n", task_msg->id);
 	//检查处理的uri是否有重复。
 	g_mutex_lock(log_task_href_mutex);
 	GString *log_href = g_hash_table_lookup(log_task_href, task);
@@ -1008,10 +1039,8 @@ void task_thread(MyTaskMessage *task_msg, gpointer userdata) {
 		log_href = g_string_new("");
 	} else {
 		if (g_strrstr(log_href->str, temp) != NULL) {
-			temp2 = g_strdup_printf("跳过重复链接:%s\n", temp);
-			main_log(op, temp2);
+			main_log(task_msg, "Skip Same Uri\n\tUri:%s\n", temp);
 			g_free(temp);
-			g_free(temp2);
 			g_mutex_unlock(log_task_href_mutex);
 			my_task_message_free(task_msg);
 			return;
@@ -1020,53 +1049,58 @@ void task_thread(MyTaskMessage *task_msg, gpointer userdata) {
 	log_href = g_string_append(log_href, temp);
 	g_hash_table_insert(log_task_href, task, log_href);
 	g_mutex_unlock(log_task_href_mutex);
-	g_print("%3d task_send msg\n",task_msg->id);
+	g_print("%3d task_send msg\n", task_msg->id);
 	//向目标网址发送Get请求
-	temp2 = g_strdup_printf("deal with url:%s\n", temp);
-	main_log(op, temp2);
-	g_free(temp2);
-	if (task_msg->msg == NULL) {
+	if (task_msg->reponse_body == NULL) {
+		main_log(task_msg, "Load Uri\n\tUri:%s\n", temp);
 		status = task_thread_send_message(task_msg);
 		if (status != SOUP_STATUS_OK) {
 			g_object_unref(task_msg);
-			temp2 = g_strdup_printf("!!错误:%s Response:%s\n", temp,
+			main_log(task_msg, "Load Failed!!!\n\tUri:%s\n\tReason:%s\n", temp,
 					soup_status_get_phrase(status));
-			main_log(op, temp2);
-			g_free(temp2);
 			g_free(temp);
 			my_task_message_free(task_msg);
 			return;
+		} else {
+			main_log(task_msg, "Load Uri Finish\n\tTitle:%s\n\tUri:%s\n",
+					task_msg->web_title, temp);
 		}
+	} else {
+		main_log(task_msg, "\n\tTitle:%s\n\tUri:%s\n", task_msg->web_title,
+				temp);
 	};
 	g_free(temp);
 	str = g_string_new("");
-	g_print("%3d task_eval xpath \n",task_msg->id);
+	g_print("%3d task_eval xpath \n", task_msg->id);
 	//处理Get的response
 	if (set->search_xpath) {
-		if (task_msg->doc == NULL)
-			task_thread_load_html_doc(task_msg, set);
+		main_log(task_msg, "Parse Xpath\n\tXpath:%s\n", set->xpath);
 		xpobj = task_thread_search_xpath(set, task_msg);
 		if (xpobj != NULL && xpobj->nodesetval != NULL) {
 			ns = xpobj->nodesetval;
-			if (set->output_xpath
-					&& g_strcmp0("", set->output_xpathprop) != 0) {
-				g_string_printf(str,
-						"\n\n####### XPATH:%s\n####### PROP:%s\n\n", set->xpath,
-						set->output_xpathprop);
+			if (set->output_xpath) {
+				g_string_printf(str, "\n\n####### XPATH:%s\n", set->xpath);
 				for (i = 0; i < ns->nodeNr; i++) {
 					content = xmlNodeGetContent(ns->nodeTab[i]);
 					if (content == NULL)
 						content = g_strdup("null");
 					content = g_strstrip(content);
-					prop = xmlGetProp(ns->nodeTab[i], set->output_xpathprop);
-					if (prop == NULL)
-						prop = g_strdup("null");
-					prop = g_strstrip(prop);
 					if (stop_thread == FALSE) {
 						task_link = task_get_linklist(task);
+						main_log(task_msg,
+								"Output Xpath value\n\tXpath:%s\n\tValue:%s\n",
+								set->xpath, content);
 						while (task_link != NULL) {
-							sub_task_msg = my_task_message_new(session,
-									soup_uri_new_with_base(task_msg->uri, prop),
+							uri = soup_uri_new_with_base(task_msg->uri, content);
+							if(uri==NULL){
+								task_link = task_link->next;
+								continue;
+							}
+							if (uri->host == NULL) {
+								soup_uri_free(uri);
+								break;
+							}
+							sub_task_msg = my_task_message_new(session, uri,
 									task_link->data, task_id++);
 							sub_task_msg->web_title = g_strdup(
 									task_msg->web_title);
@@ -1078,9 +1112,8 @@ void task_thread(MyTaskMessage *task_msg, gpointer userdata) {
 							task_link = task_link->next;
 						}
 					}
-					g_string_append_printf(str, "\"%s\":\"%s\"\n",
-							(gchar*) content, (gchar*) prop);
-					g_free(prop);
+						g_string_append_printf(str, "\t\"%s\"\n",
+								(gchar*) content);
 					g_free(content);
 				};
 			} else {
@@ -1098,17 +1131,18 @@ void task_thread(MyTaskMessage *task_msg, gpointer userdata) {
 					};
 				};
 			};
-			xmlXPathFreeObject(xpobj);
 		};
+		xmlXPathFreeObject(xpobj);
 	};
 
-	g_print("%3d task_output file \n",task_msg->id);
+	g_print("%3d task_output file \n", task_msg->id);
 	if (set->output_file) {
-		if (task_msg->filename == NULL)
-			task_msg->filename = task_thread_output_file_setname(set, task_msg);
+		g_free(task_msg->filename);
+		task_msg->filename = task_thread_output_file_setname(set, task_msg);
+		main_log(task_msg, "Write to File\n\tFile:%s\n", task_msg->filename);
 		task_thread_output_file(set, task_msg, str->str);
 	}
-	g_print("%3d task_print termintal \n",task_msg->id);
+	g_print("%3d task_print termintal \n", task_msg->id);
 	if (set->terminal_print)
 		task_thread_terminal_print(set, task_msg, str->str);
 	g_string_free(str, TRUE);

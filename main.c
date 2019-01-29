@@ -27,7 +27,7 @@ void my_app_init() {
 	COOKIE_FILE = NULL;
 
 	down_ui = my_download_ui_new();
-	//mycurl=my_curl_new(down_ui);
+	mycurl=my_curl_new(down_ui);
 	down_win = gtk_window_new(GTK_WINDOW_TOPLEVEL);
 	gtk_container_add(down_win, down_ui);
 	gtk_widget_hide(down_win);
@@ -172,14 +172,14 @@ gboolean notify_thread_num(MyMainui *ui) {
 		gtk_list_store_append(fin_store, &iter);
 		size_fmt = format_size_to_str(task_msg->content_size);
 		uri_fmt = soup_uri_to_string(task_msg->uri, FALSE);
-		if (task_msg->msg->status_code == SOUP_STATUS_OK) {
+		if (task_msg->soup_status == SOUP_STATUS_OK) {
 			state = Finish;
 		} else {
 			state = Error;
 		}
 		gtk_list_store_set(fin_store, &iter, finish_col_name,
 				task_msg->filename, finish_col_uri, uri_fmt, finish_col_error,
-				soup_status_get_phrase(task_msg->msg->status_code),
+				soup_status_get_phrase(task_msg->soup_status),
 				finish_col_local, task_msg->local, finish_col_size,
 				task_msg->content_size, finish_col_size_format, size_fmt,
 				finish_col_state, state, finish_col_state_pixbuf,
@@ -215,9 +215,9 @@ int main(int args, char *argv[]) {
 	g_signal_connect(ui, "setting", main_ui_setting, NULL);
 	g_signal_connect(ui, "stop", main_ui_stop, NULL);
 	g_signal_connect(ui, "down-info", main_ui_down_info, NULL);
-	gchar *log_filename = g_strdup_printf("%s/log.txt", OUTPUT_DIR);
+	/*gchar *log_filename = g_strdup_printf("%s/log.txt", OUTPUT_DIR);
 	log_file = g_io_channel_new_file(log_filename, "a+", NULL);
-	g_free(log_filename);
+	g_free(log_filename);*/
 	g_timeout_add(250, notify_thread_num, ui);
 	gtk_main();
 	return 0;
