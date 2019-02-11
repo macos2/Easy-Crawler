@@ -1134,8 +1134,10 @@ void task_xpath_output(MyTaskMessage *task_msg, const gchar *content) {
 					task_link->data, task_id++);
 			sub_task_msg->web_title = g_strdup(task_msg->web_title);
 			sub_set = task_get_set(task_link->data);
-			if (sub_set->search_xpath == FALSE && sub_set->output_file)
+			if (sub_set->search_xpath == FALSE && sub_set->output_file){
+				runing_count++;
 				task_source(sub_task_msg);
+			}
 			else
 				g_async_queue_push(process_queue, sub_task_msg);
 		}
