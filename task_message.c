@@ -27,15 +27,17 @@ static void my_task_message_init(MyTaskMessage *self) {
 	self->cancel=NULL;
 	self->charset=NULL;
 	self->local=NULL;
-	self->reponse_body=NULL;
 	self->suggest_filename=NULL;
+	self->xpath_result=g_string_new("");
+	self->utf8_conv=NULL;
+	self->msg=NULL;
 	g_mutex_init(&self->mutex);
 }
 ;
 
 MyTaskMessage *my_task_message_new(SoupSession *session,SoupURI *uri,gpointer task,gint id) {
 	MyTaskMessage *msg=g_object_new(MY_TYPE_TASK_MESSAGE, NULL);
-	msg->session=g_object_ref(session);
+	msg->session=session;
 	msg->uri=uri;
 	msg->task=task;
 	msg->id=id;
@@ -49,8 +51,6 @@ gboolean my_task_message_free(MyTaskMessage *self) {
 ;
 
 void my_task_message_finalize(MyTaskMessage *self) {
-	g_print("Finalize:%d-%s\n",self->id,self->filename);
-	g_object_unref(self->session);
 	if (self->ctxt != NULL)
 		xmlXPathFreeContext(self->ctxt);
 	if (self->doc != NULL)
@@ -63,7 +63,9 @@ void my_task_message_finalize(MyTaskMessage *self) {
 		g_free(self->web_title);
 	if(self->charset!=NULL)g_free(self->charset);
 	g_free(self->local);
-	g_free(self->reponse_body);
 	g_free(self->suggest_filename);
+	g_string_free(self->xpath_result,TRUE);
+	g_free(self->utf8_conv);
+	if(self->msg!=NULL)g_object_unref(self->msg);
 }
 ;

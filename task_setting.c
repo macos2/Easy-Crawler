@@ -13,7 +13,9 @@ typedef struct {
 	GtkEntry *url_entry, *xpath_entry,*fmt_filename;
 	GtkFileChooserButton *source_filename;
 	GtkCheckButton *xpath_check, *file_check, *terminal_check,
-			*output_xpathprop;
+			*output_modify;
+	GtkEntryBuffer *fmt_output,*regex_pattern;
+	GtkTextBuffer *regex_test_text;
 } MyTaskSettingPrivate;
 
 G_DEFINE_TYPE_WITH_CODE(MyTaskSetting, my_task_setting, GTK_TYPE_DIALOG,
@@ -45,7 +47,13 @@ static void my_task_setting_class_init(MyTaskSettingClass *klass) {
 	gtk_widget_class_bind_template_child_private(klass, MyTaskSetting,
 			terminal_check);
 	gtk_widget_class_bind_template_child_private(klass, MyTaskSetting,
-			output_xpathprop);
+			output_modify);
+	gtk_widget_class_bind_template_child_private(klass, MyTaskSetting,
+			fmt_output);
+	gtk_widget_class_bind_template_child_private(klass, MyTaskSetting,
+			regex_pattern);
+	gtk_widget_class_bind_template_child_private(klass, MyTaskSetting,
+			regex_test_text);
 }
 
 static void my_task_setting_init(MyTaskSetting *self) {
@@ -75,15 +83,19 @@ MyTaskSetting *my_task_setting_new(task_set *set) {
 	gtk_toggle_button_set_active(priv->terminal_check, set->terminal_print);
 	gtk_toggle_button_set_active(priv->xpath_check, set->search_xpath);
 	gtk_toggle_button_set_active(priv->file_check, set->output_file);
-	if (set->output_xpath) {
-		gtk_toggle_button_set_active(priv->output_xpathprop, TRUE);
+	if (set->output_modify) {
+		gtk_toggle_button_set_active(priv->output_modify, TRUE);
 	}
 	gtk_entry_set_text(priv->xpath_entry, set->xpath);
 	gtk_entry_set_text(priv->fmt_filename,set->fmt_filename);
+	gtk_entry_buffer_set_text(priv->regex_pattern,set->regex_pattern,-1);
+	gtk_entry_buffer_set_text(priv->fmt_output,set->fmt_output,-1);
+	gtk_text_buffer_set_text(priv->regex_test_text,set->regex_test_text,-1);
 	return setting;
 }
 ;
 void my_task_setting_get_set(MyTaskSetting *self, task_set *set) {
+	GtkTextIter start,end;
 	MyTaskSettingPrivate *priv = self->priv;
 	set->source = TASK_SOURCE_LINKER;
 	if (set->source_name != NULL) {
@@ -108,10 +120,15 @@ void my_task_setting_get_set(MyTaskSetting *self, task_set *set) {
 	}
 	set->search_xpath = gtk_toggle_button_get_active(priv->xpath_check);
 	set->xpath = g_strdup(gtk_entry_get_text(priv->xpath_entry));
-	set->output_xpath = gtk_toggle_button_get_active(priv->output_xpathprop);
+	set->output_modify = gtk_toggle_button_get_active(priv->output_modify);
 	set->output_file = gtk_toggle_button_get_active(priv->file_check);
 	set->terminal_print = gtk_toggle_button_get_active(priv->terminal_check);
 	set->fmt_filename=g_strdup(gtk_entry_get_text(priv->fmt_filename));
+	set->regex_pattern=g_strdup(gtk_entry_buffer_get_text(priv->regex_pattern));
+	set->fmt_output=g_strdup(gtk_entry_buffer_get_text(priv->fmt_output));
+	gtk_text_buffer_get_start_iter(priv->regex_test_text,&start);
+	gtk_text_buffer_get_end_iter(priv->regex_test_text,&end);
+	set->regex_test_text=gtk_text_buffer_get_text(priv->regex_test_text,&start,&end,TRUE);
 }
 ;
 
