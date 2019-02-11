@@ -15,11 +15,13 @@ typedef struct {
 	GtkCheckButton *xpath_check, *file_check, *terminal_check,
 			*output_modify;
 	GtkEntryBuffer *fmt_output,*regex_pattern;
-	GtkTextBuffer *regex_test_text;
+	GtkTextBuffer *regex_test_text,*result_text;
 } MyTaskSettingPrivate;
 
 G_DEFINE_TYPE_WITH_CODE(MyTaskSetting, my_task_setting, GTK_TYPE_DIALOG,
 		G_ADD_PRIVATE(MyTaskSetting));
+
+void my_task_setting_test(GtkButton *button,MyTaskSetting *setting);
 
 static void my_task_setting_class_init(MyTaskSettingClass *klass) {
 	/*gchar *template;
@@ -54,6 +56,10 @@ static void my_task_setting_class_init(MyTaskSettingClass *klass) {
 			regex_pattern);
 	gtk_widget_class_bind_template_child_private(klass, MyTaskSetting,
 			regex_test_text);
+	gtk_widget_class_bind_template_child_private(klass, MyTaskSetting,
+			result_text);
+	gtk_widget_class_bind_template_callback(klass,my_task_setting_test);
+	g_signal_new("test",MY_TYPE_TASK_SETTING,G_SIGNAL_RUN_LAST,G_STRUCT_OFFSET(MyTaskSettingClass,test),NULL,NULL,NULL,G_TYPE_POINTER,3,G_TYPE_POINTER,G_TYPE_POINTER,G_TYPE_POINTER,NULL);
 }
 
 static void my_task_setting_init(MyTaskSetting *self) {
@@ -94,6 +100,31 @@ MyTaskSetting *my_task_setting_new(task_set *set) {
 	return setting;
 }
 ;
+
+void my_task_setting_test(GtkButton *button,MyTaskSetting *setting){
+	guint i;
+	GtkTextIter start,end;
+	gchar *regex_pattern,*output_fmt,*eval_content,*t;
+	GArray *result;
+	GString *temp=g_string_new("");
+	MyTaskSettingPrivate *priv=my_task_setting_get_instance_private(setting);
+	regex_pattern=gtk_entry_buffer_get_text(priv->regex_pattern);
+	output_fmt=gtk_entry_buffer_get_text(priv->fmt_output);
+	gtk_text_buffer_get_start_iter(priv->regex_test_text,&start);
+	gtk_text_buffer_get_end_iter(priv->regex_test_text,&end);
+	eval_content=gtk_text_buffer_get_text(priv->regex_test_text,&start,&end,TRUE);
+	g_signal_emit_by_name(setting,"test",regex_pattern,output_fmt,eval_content,&result);
+	for(i=0;i<result->len;i++){
+		t=g_array_index(result,gpointer,i);
+		g_string_append_printf(temp,"\"%s\"\n",t);
+	}
+	gtk_text_buffer_set_text(priv->result_text,temp->str,-1);
+	g_string_free(temp,TRUE);
+	g_free(eval_content);
+	g_ptr_array_set_free_func(result, g_free);
+	g_array_free(result,TRUE);
+};
+
 void my_task_setting_get_set(MyTaskSetting *self, task_set *set) {
 	GtkTextIter start,end;
 	MyTaskSettingPrivate *priv = self->priv;
@@ -131,4 +162,5 @@ void my_task_setting_get_set(MyTaskSetting *self, task_set *set) {
 	set->regex_test_text=gtk_text_buffer_get_text(priv->regex_test_text,&start,&end,TRUE);
 }
 ;
+
 
