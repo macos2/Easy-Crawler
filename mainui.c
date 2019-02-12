@@ -23,6 +23,7 @@ void my_mainui_stop_clicked(GtkToolButton *button,gpointer userdata);
 void mainui_open_clicked (GtkMenuItem *item, MyMainui *MyMainui);
 void mainui_save_clicked (GtkMenuItem *item, MyMainui *MyMainui);
 void mainui_setting_clicked (GtkMenuItem *item, MyMainui *MyMainui);
+gboolean my_main_ui_close(GtkWidget *widget,MyMainui *ui);
 
 static void my_mainui_class_init(MyMainuiClass *klass) {
 	/*gchar*template;
@@ -40,6 +41,7 @@ static void my_mainui_class_init(MyMainuiClass *klass) {
 	gtk_widget_class_bind_template_callback(klass,mainui_save_clicked);
 	gtk_widget_class_bind_template_callback(klass,mainui_setting_clicked);
 	gtk_widget_class_bind_template_callback(klass,my_mainui_stop_clicked);
+	gtk_widget_class_bind_template_callback(klass,my_main_ui_close);
 	g_signal_new("add_child",MY_TYPE_MAINUI,G_SIGNAL_RUN_LAST,G_STRUCT_OFFSET(MyMainuiClass,add_child),NULL,NULL,NULL,G_TYPE_NONE,0,NULL);
 	g_signal_new("down-info",MY_TYPE_MAINUI,G_SIGNAL_RUN_LAST,G_STRUCT_OFFSET(MyMainuiClass,info),NULL,NULL,NULL,G_TYPE_NONE,0,NULL);
 	g_signal_new("exec",MY_TYPE_MAINUI,G_SIGNAL_RUN_LAST,G_STRUCT_OFFSET(MyMainuiClass,exec),NULL,NULL,NULL,G_TYPE_NONE,0,NULL);
@@ -92,7 +94,19 @@ void mainui_setting_clicked (GtkMenuItem *item, MyMainui *MyMainui){
 	g_signal_emit_by_name(MyMainui,"setting",NULL);
 };
 
-
+gboolean my_main_ui_close(GtkWidget *widget,MyMainui *ui){
+	gboolean quit=FALSE;
+	MyMainui *self=ui;
+	GtkResponseType repo;
+	if(!MY_IS_MAINUI(self))self=widget;
+	GtkDialog *dialog=gtk_message_dialog_new(self,GTK_DIALOG_MODAL,GTK_MESSAGE_QUESTION,GTK_BUTTONS_YES_NO,"是否退出?");
+	if(gtk_dialog_run(dialog)==GTK_RESPONSE_YES){
+		quit=TRUE;
+	}
+	gtk_widget_destroy(dialog);
+	if(quit)gtk_main_quit();
+	return TRUE;
+}
 
 GtkLayout *my_mainui_get_layout(MyMainui *self){
 	MyMainuiPrivate *priv=my_mainui_get_instance_private(self);
