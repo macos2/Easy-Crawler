@@ -6,6 +6,7 @@
     <property name="can_focus">False</property>
     <property name="default_width">800</property>
     <property name="default_height">600</property>
+    <signal name="delete-event" handler="my_main_ui_close" swapped="no"/>
     <child type="titlebar">
       <placeholder/>
     </child>
@@ -77,7 +78,7 @@
                         <property name="can_focus">False</property>
                         <property name="use_underline">True</property>
                         <property name="use_stock">True</property>
-                        <signal name="activate" handler="gtk_main_quit" swapped="no"/>
+                        <signal name="activate" handler="my_main_ui_close" object="MyMainui" swapped="no"/>
                       </object>
                     </child>
                   </object>

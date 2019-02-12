@@ -483,6 +483,7 @@ example:
     </action-widgets>
   </template>
   <object class="GtkTextBuffer" id="regex_test_text"/>
+  <object class="GtkTextBuffer" id="result_text"/>
   <object class="GtkDialog" id="RegexTest">
     <property name="width_request">350</property>
     <property name="can_focus">False</property>
@@ -645,6 +646,7 @@ example:
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
                         <property name="receives_default">True</property>
+                        <signal name="clicked" handler="my_task_setting_test" object="MyTaskSetting" swapped="no"/>
                       </object>
                       <packing>
                         <property name="expand">True</property>
@@ -674,6 +676,7 @@ example:
                           <object class="GtkTextView">
                             <property name="visible">True</property>
                             <property name="can_focus">True</property>
+                            <property name="buffer">result_text</property>
                           </object>
                         </child>
                       </object>

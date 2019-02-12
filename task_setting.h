@@ -29,6 +29,7 @@ typedef struct {
 MY_DECLARE_DERIVABLE_TYPE(MyTaskSetting,my_task_setting,MY,TASK_SETTING,GtkDialog);
 typedef struct _MyTaskSettingClass{
 	GtkDialogClass parent_class;
+	GArray *(*test)(MyTaskSetting *setting,gchar *regex_pattren,gchar *output_fmt,gchar *eval_content,void *user_data);
 };
 typedef struct _MyTaskSetting{
 	GtkDialog parent_instance;
