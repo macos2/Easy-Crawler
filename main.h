@@ -918,16 +918,6 @@ void task_thread_terminal_print(task_set *set, MyTaskMessage *task_msg,
 }
 ;
 
-void task_thread_download_notify(SoupMessage *msg, SoupBuffer *chunk,
-		MyTaskMessage *task_msg) {
-	if (task_msg->list_row == NULL)
-		return; //下载已经取消
-	g_mutex_lock(&task_msg->mutex);
-	task_msg->dl_size += chunk->length;
-	task_msg->GET_STATUS = Get_Body;
-	g_mutex_unlock(&task_msg->mutex);
-}
-
 void task_thread_download_finish(SoupMessage *msg, MyTaskMessage *task_msg) {
 	g_mutex_lock(&task_msg->mutex);
 	task_msg->GET_STATUS = Get_Finish;
@@ -954,7 +944,6 @@ void task_parse_head(SoupMessage *msg, MyTaskMessage *task_msg) {
 	gchar *temp1, *temp2, *dis_type, *match_res;
 	GHashTable *head_table;
 	guint i = 0;
-	GDateTime *time = g_date_time_new_now_local();
 	FILE *f;
 	GMatchInfo *match_info = NULL;
 	g_mutex_lock(&task_msg->mutex);
@@ -1010,8 +999,6 @@ void task_parse_head(SoupMessage *msg, MyTaskMessage *task_msg) {
 		}
 		g_hash_table_unref(head_table);
 	}
-	task_msg->start_time = g_date_time_to_unix(time);
-	g_date_time_unref(time);
 	g_mutex_unlock(&task_msg->mutex);
 }
 
@@ -1200,15 +1187,15 @@ void task_xpath_eval(MyTaskMessage *task_msg) {
 								g_array_append_val(fmt_arr, temp);
 							}
 						}
-						g_string_append_printf(str, "\t\tAfter Modify:\n");
+						g_string_append_printf(str, "\t  =>\n");
 						for (j = 0; j < fmt_arr->len; j++) {
 							task_xpath_output(task_msg,
 									g_array_index(fmt_arr, gpointer, j));
 							main_log(task_msg,
-									"Output Xpath value\n\tXpath:%s\n\tValue:%s\n\tAfter Modify:\"%s\"\n",
+									"Output Xpath value\n\tXpath:%s\n\tValue:%s\n\t  =>:\"%s\"\n",
 									set->xpath, content,
 									g_array_index(fmt_arr, gpointer, j));
-							g_string_append_printf(str, "\t\t\t\"%s\"\n",
+							g_string_append_printf(str, "\t    \"%s\"\n",
 									g_array_index(fmt_arr, gpointer, j));
 						}
 						g_ptr_array_set_free_func(regex_arr, g_free);
@@ -1305,13 +1292,14 @@ gboolean task_source(MyTaskMessage *task_msg) {
 	}
 	if (task_msg->msg == NULL) {
 		uri = soup_uri_to_string(task_msg->uri, FALSE);
-		main_log(task_msg, "Load Uri\n\tUri:%s\n", uri);
 		if (task_setting->search_xpath) {
+			main_log(task_msg, "Load Uri\n\tUri:%s\n", uri);
 			msg = soup_message_new_from_uri("GET", task_msg->uri);
 			task_msg->msg = g_object_ref(msg);
 			soup_session_queue_message(task_msg->session, msg,
 					task_send_message_callback, task_msg);
 		} else if (task_setting->output_file) {
+			main_log(task_msg, "DownLoad\n\tUri:%s\n", uri);
 			my_curl_add_download(mycurl, uri, NULL, NULL, NULL, NULL, NULL,
 					g_object_ref(task_msg), g_object_ref(task_msg), FALSE);
 			g_object_unref(task_msg);

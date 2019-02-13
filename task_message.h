@@ -37,7 +37,7 @@ typedef struct _MyTaskMessage{
 	gint id;
 	gchar *filename, *web_title,*charset,*local,*suggest_filename,*utf8_conv;
 	void *list_row;
-	gint64 start_time,dl_size,content_size,pre_dlsize;
+	//gint64 start_time,dl_size,content_size,pre_dlsize;
 	gboolean *cancel;
 	Task_Msg_Get_Status GET_STATUS;
 	SoupStatus soup_status;

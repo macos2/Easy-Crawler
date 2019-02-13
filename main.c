@@ -66,14 +66,8 @@ gboolean notify_thread_num(MyMainui *ui) {
 	GtkTreeIter iter;
 	MyTaskMessage *task_msg;
 	GtkStatusbar *status_bar = my_mainui_get_statusbar(ui);
-	GtkListStore *down_store = my_download_ui_get_download_store(down_ui);
 	GString *str = g_string_new("");
-	if (gtk_tree_model_get_iter_first(down_store, &iter)) {
-		down_count++;
-		while(gtk_tree_model_iter_next(down_store,&iter)){
-			down_count++;
-		}
-	};
+	down_count=my_curl_get_downloading_count(mycurl,TRUE);
 	while (g_async_queue_length(process_queue) > 0 && runing_count < MAX_THREAD) {
 		task_msg = g_async_queue_pop(process_queue);
 		g_idle_add(task_source, task_msg);
