@@ -688,6 +688,7 @@ void main_ui_setting(MyMainui *ui, gpointer userdata) {
 
 void main_ui_down_info(MyMainui *ui, gpointer userdata) {
 	gtk_widget_show_all(down_win);
+	gtk_widget_grab_focus (down_win);
 }
 
 void clear_log_task_href(gpointer key, gpointer value, gpointer user_data) {
@@ -853,14 +854,28 @@ void task_curl_set_cookies_callback(gchar *cookies, MyTaskMessage *task_msg) {
 
 gchar * task_my_curl_get_cookies_callback(MyTaskMessage *task_msg) {
 	gchar *cookies = NULL;
+	GString *str = g_string_new("");
 	SoupCookieJar *cookiejar = soup_session_get_feature(task_msg->session,
 	SOUP_TYPE_COOKIE_JAR);
 	if (cookiejar != NULL) {
 		cookies = soup_cookie_jar_get_cookies(cookiejar, task_msg->uri, FALSE);
+		g_string_append_printf(str, "%s;", cookies);
+		g_free(cookies);
+		cookies = str->str;
+		g_string_free(str, FALSE);
 	}
 	return cookies;
 }
 ;
+
+gchar ** task_my_curl_get_proxy_callback(gchar *uri,MyTaskMessage *task_msg){
+	GProxyResolver *resolver=NULL;
+	SoupSession *s=session;
+	if(task_msg!=NULL)s=task_msg->session;
+	g_object_get(s,"proxy-resolver",&resolver,NULL);
+	if(resolver==NULL)return NULL;
+	return g_proxy_resolver_lookup(resolver,uri,NULL,NULL);
+};
 
 void task_thread_output_file(task_set *set, MyTaskMessage *task_msg,
 		gchar *xpath_result) {
@@ -918,12 +933,6 @@ void task_thread_terminal_print(task_set *set, MyTaskMessage *task_msg,
 }
 ;
 
-void task_thread_download_finish(SoupMessage *msg, MyTaskMessage *task_msg) {
-	g_mutex_lock(&task_msg->mutex);
-	task_msg->GET_STATUS = Get_Finish;
-	g_mutex_unlock(&task_msg->mutex);
-}
-
 void task_load_html_doc(MyTaskMessage *task_msg, task_set *set) {
 	GError *error = NULL;
 	gchar *url = soup_uri_to_string(task_msg->uri, FALSE);
@@ -947,7 +956,6 @@ void task_parse_head(SoupMessage *msg, MyTaskMessage *task_msg) {
 	FILE *f;
 	GMatchInfo *match_info = NULL;
 	g_mutex_lock(&task_msg->mutex);
-	task_msg->GET_STATUS = Get_Head;
 	mime_type = soup_message_headers_get_content_type(msg->response_headers,
 			&type_table);
 	if (mime_type != NULL) {
@@ -1121,11 +1129,10 @@ void task_xpath_output(MyTaskMessage *task_msg, const gchar *content) {
 					task_link->data, task_id++);
 			sub_task_msg->web_title = g_strdup(task_msg->web_title);
 			sub_set = task_get_set(task_link->data);
-			if (sub_set->search_xpath == FALSE && sub_set->output_file){
+			if (sub_set->search_xpath == FALSE && sub_set->output_file) {
 				runing_count++;
 				task_source(sub_task_msg);
-			}
-			else
+			} else
 				g_async_queue_push(process_queue, sub_task_msg);
 		}
 		task_link = task_link->next;
@@ -1292,21 +1299,19 @@ gboolean task_source(MyTaskMessage *task_msg) {
 	}
 	if (task_msg->msg == NULL) {
 		uri = soup_uri_to_string(task_msg->uri, FALSE);
-		if (task_setting->search_xpath) {
+		if (task_setting->search_xpath == FALSE
+				&& task_setting->output_file == TRUE) {
+			main_log(task_msg, "DownLoad\n\tUri:%s\n", uri);
+			my_curl_add_download(mycurl, uri, NULL, NULL, NULL, NULL, NULL,
+					g_object_ref(task_msg), g_object_ref(task_msg),g_object_ref(task_msg), FALSE);
+			g_object_unref(task_msg);
+			runing_count_modify();
+		} else {
 			main_log(task_msg, "Load Uri\n\tUri:%s\n", uri);
 			msg = soup_message_new_from_uri("GET", task_msg->uri);
 			task_msg->msg = g_object_ref(msg);
 			soup_session_queue_message(task_msg->session, msg,
 					task_send_message_callback, task_msg);
-		} else if (task_setting->output_file) {
-			main_log(task_msg, "DownLoad\n\tUri:%s\n", uri);
-			my_curl_add_download(mycurl, uri, NULL, NULL, NULL, NULL, NULL,
-					g_object_ref(task_msg), g_object_ref(task_msg), FALSE);
-			g_object_unref(task_msg);
-			runing_count_modify();
-		} else {
-			g_object_unref(task_msg);
-			runing_count_modify();
 		}
 		g_free(uri);
 		return G_SOURCE_REMOVE;
