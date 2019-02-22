@@ -22,8 +22,6 @@ static void my_task_message_init(MyTaskMessage *self) {
 	self->filename=NULL;
 	self->web_title=NULL;
 	self->list_row=NULL;
-	self->dl_size=0;
-	self->start_time=0;
 	self->cancel=NULL;
 	self->charset=NULL;
 	self->local=NULL;
