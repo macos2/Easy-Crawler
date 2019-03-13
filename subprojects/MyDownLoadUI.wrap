@@ -1,0 +1,7 @@
+[wrap-git]
+directory = MyDownLoadUI
+url = https://github.com/macos2/MyDownLoadUI.git
+revision = head
+clone-recursive = true
+
+
