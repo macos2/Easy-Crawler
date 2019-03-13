@@ -2,9 +2,9 @@ Easy-Crawler
 ============
 This is a crawler programme writen in C .it works on libsoup,libxml2.and have a gui writen with Gtk.
 ![](https://github.com/macos2/Easy-Crawler/blob/master/about.png)
-![](https://github.com/macos2/Easy-Crawler/blob/master/screen%20shoot-1.png)
-![](https://github.com/macos2/Easy-Crawler/blob/master/screen%20shoot-2.png)
-![](https://github.com/macos2/Easy-Crawler/blob/master/screen%20shoot-3.png)
+![](https://github.com/macos2/Easy-Crawler/blob/master/screenshoot-1.png)
+![](https://github.com/macos2/Easy-Crawler/blob/master/screenshoot-2.png)
+![](https://github.com/macos2/Easy-Crawler/blob/master/screenshoot-3.png)
 
 Depend
 ------
