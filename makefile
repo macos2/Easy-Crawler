@@ -1,7 +1,7 @@
 require=$(shell "find *.c *.h *.xml *.glade ./subprojects/*/*.c ./subprojects/*/*.h ./subprojects/*/*.xml ./subprojects/*/*.glade -printf '%p '")
 all:
 	meson build
-	+make -C ./build
+	cd build&&ninja
 
 #clean:
 #	rm -rf *.o Easy_Crawler
