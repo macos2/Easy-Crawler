@@ -2,12 +2,14 @@ Easy-Crawler
 ============
 This is a crawler programme writen in C .it works on libsoup,libxml2.and have a gui writen with Gtk.
 ![](https://github.com/macos2/Easy-Crawler/blob/master/about.png)
-![](https://github.com/macos2/Easy-Crawler/blob/master/screen%20shoot.png)
+![](https://github.com/macos2/Easy-Crawler/blob/master/screen%20shoot-1.png)
+![](https://github.com/macos2/Easy-Crawler/blob/master/screen%20shoot-2.png)
+![](https://github.com/macos2/Easy-Crawler/blob/master/screen%20shoot-3.png)
 
 Depend
 ------
-`gtk+-3.0` `libxml-2.0` `libsoup-2.4`
-and make sure your pkg-config work correctly.
+`gtk+-3.0` `libxml-2.0` `libsoup-2.4` `libcurl`
+and make sure your pkg-config and meson work correctly.
 
 Build
 -----
