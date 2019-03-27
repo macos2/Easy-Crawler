@@ -9,6 +9,7 @@
 #define MAINFUN_C_
 #include <stdlib.h>
 #include <stdio.h>
+#include <unistd.h>
 #include <libsoup-2.4/libsoup/soup.h>
 #include <libxml2/libxml/xpath.h>
 #include <libxml2/libxml/HTMLparser.h>
@@ -883,6 +884,11 @@ void task_thread_output_file(task_set *set, MyTaskMessage *task_msg,
 	gchar *output_dir = my_download_ui_get_default_dir(down_ui);
 	gchar *name = g_strdup_printf("%s%s%s", output_dir, G_DIR_SEPARATOR_S,
 			task_msg->filename);
+#ifdef G_OS_WIN32
+	gchar *temp=g_convert(name,-1,"gbk","uft-8",NULL,NULL,NULL);
+	g_free(name);
+	name=temp;
+#endif
 	GFile *file = g_file_new_for_path(name);
 	GFile *parent = g_file_get_parent(file);
 	gchar *path = g_file_get_path(parent);
