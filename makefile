@@ -2,6 +2,7 @@ require=$(shell "find *.c *.h *.xml *.glade ./subprojects/*/*.c ./subprojects/*/
 all:
 	meson build
 	cd build&&ninja
+	copy build\easy-crawler.exe "g:\gtk\bin"
 
 #clean:
 #	rm -rf *.o Easy_Crawler

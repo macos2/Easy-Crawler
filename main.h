@@ -753,14 +753,14 @@ char *task_thread_output_file_setname(task_set *set, MyTaskMessage *task_msg) {
 	if (g_strstr_len(set->fmt_filename, -1, "%f") != NULL
 			|| g_strstr_len(set->fmt_filename, -1, "%u") != NULL) {
 		uri_temp = soup_uri_to_string(task_msg->uri, FALSE);
-		urlv = g_strsplit(uri_temp, G_DIR_SEPARATOR_S, -1);
+		urlv = g_strsplit(uri_temp, "/", -1);
 		uri = g_strjoinv("|", urlv);
 
 		name = g_strdup(task_msg->suggest_filename);
 		if (name == NULL) { //从uri中获取文件名
 			file = g_file_new_for_path(uri_temp);
 			name = g_file_get_basename(file);
-			if (g_strcmp0("", name) == 0 || g_strcmp0("/", name) == 0) {
+			if (g_strcmp0("", name) == 0 || g_strcmp0( G_DIR_SEPARATOR_S, name) == 0) {
 				g_free(name);
 				name = NULL;
 			}
@@ -830,17 +830,25 @@ char *task_thread_output_file_setname(task_set *set, MyTaskMessage *task_msg) {
 		abs_name = g_strdup(name_temp);
 	}
 	g_free(name_temp);
+#ifdef G_OS_WIN32
+	urlv = g_strsplit_set(abs_name, "/|\"*?:<>", -1);
+	g_free(abs_name);
+	abs_name = g_strjoinv("_", urlv);
+	g_strfreev(urlv);
+#endif
 	return abs_name;
 }
 
 gchar* task_curl_set_filename_callback(gchar *suggest_name,
 		MyTaskMessage *task_msg) {
+	gchar *name,*temp;
 	if (task_msg == NULL)
 		return NULL;
 	task_set *set = task_get_set(task_msg->task);
 	g_free(task_msg->suggest_filename);
 	task_msg->suggest_filename = g_strdup(suggest_name);
-	return task_thread_output_file_setname(set, task_msg);
+	name= task_thread_output_file_setname(set, task_msg);
+	return name;
 }
 ;
 
@@ -885,7 +893,7 @@ void task_thread_output_file(task_set *set, MyTaskMessage *task_msg,
 	gchar *name = g_strdup_printf("%s%s%s", output_dir, G_DIR_SEPARATOR_S,
 			task_msg->filename);
 #ifdef G_OS_WIN32
-	gchar *temp=g_convert(name,-1,"gbk","uft-8",NULL,NULL,NULL);
+	gchar *temp=g_convert(name,-1,"GB2312","UTF-8",NULL,NULL,NULL);
 	g_free(name);
 	name=temp;
 #endif
