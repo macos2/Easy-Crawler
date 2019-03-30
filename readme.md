@@ -9,7 +9,7 @@ This is a crawler programme writen in C .it works on libsoup,libxml2.and have a 
 Depend
 ------
 `gtk+-3.0` `libxml-2.0` `libsoup-2.4` `libcurl`
-and make sure your pkg-config and meson work correctly.
+and make sure your pkg-config ,git and meson work correctly.
 
 Build
 -----
