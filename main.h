@@ -1162,8 +1162,7 @@ void task_xpath_eval(MyTaskMessage *task_msg) {
 	xmlChar *temp;
 	guchar *content;
 	GList *task_link = task_get_linklist(task_msg->task);
-	;
-	SoupURI *uri;
+	gchar *u=soup_uri_to_string(task_msg->uri,FALSE);
 	MyTaskMessage *sub_task_msg;
 	GArray *regex_arr, *fmt_arr;
 	GString *str = task_msg->xpath_result;
@@ -1172,8 +1171,8 @@ void task_xpath_eval(MyTaskMessage *task_msg) {
 	xpobj = task_search_xpath(set, task_msg);
 	if (xpobj != NULL && xpobj->nodesetval != NULL) {
 		ns = xpobj->nodesetval;
+		g_string_printf(str, "\n\n####### XPATH: %s\n####### URI: %s\n", set->xpath,u);
 		if (task_link != NULL) {
-			g_string_printf(str, "\n\n####### XPATH:%s\n", set->xpath);
 			for (i = 0; i < ns->nodeNr; i++) {
 				temp = xmlNodeGetContent(ns->nodeTab[i]);
 				if (temp == NULL)
@@ -1233,18 +1232,18 @@ void task_xpath_eval(MyTaskMessage *task_msg) {
 				g_free(content);
 			};
 		} else {
-			g_string_printf(str, "\n\n####### XPATH:%s\n#######\n", set->xpath);
 			for (i = 0; i < ns->nodeNr; i++) {
 				content = xmlNodeGetContent(ns->nodeTab[i]);
 				if (content == NULL)
 					content = g_strdup("null");
 				content = g_strstrip(content);
-				g_string_append_printf(str, "\"%s\"\n", (gchar*) content);
+				g_string_append_printf(str, "\t\"%s\"\n", (gchar*) content);
 				g_free(content);
 			};
 		};
 	};
 	xmlXPathFreeObject(xpobj);
+	g_free(u);
 }
 
 gboolean task_process(MyTaskMessage *task_msg) {
