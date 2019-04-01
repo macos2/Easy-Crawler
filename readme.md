@@ -11,9 +11,11 @@ Depend
 `gtk+-3.0` `libxml-2.0` `libsoup-2.4` `libcurl`
 and make sure your pkg-config ,git and meson work correctly.
 
-Build
+Build or Download
 -----
 To Build the programme ,just run `make` and the programme named `Easy_Crawler` will maked for you.
+There are also the binary package for Linux and Windows ,you can download from the release page.
+[DownLoad](https://github.com/macos2/Easy-Crawler/releases)
 
 Use
 -----
