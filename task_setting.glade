@@ -159,7 +159,18 @@
                           </packing>
                         </child>
                         <child>
-                          <placeholder/>
+                          <object class="GtkCheckButton" id="title_insist">
+                            <property name="label" translatable="yes">沿用网页标题</property>
+                            <property name="visible">True</property>
+                            <property name="can_focus">True</property>
+                            <property name="receives_default">False</property>
+                            <property name="tooltip_text" translatable="yes">处理及输出网页内容时，沿用上一级网页标题。</property>
+                            <property name="draw_indicator">True</property>
+                          </object>
+                          <packing>
+                            <property name="left_attach">1</property>
+                            <property name="top_attach">2</property>
+                          </packing>
                         </child>
                       </object>
                     </child>

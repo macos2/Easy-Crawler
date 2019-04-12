@@ -422,6 +422,8 @@ void task_set_read_from_file(task_set *set, GInputStream *in) {
 	NULL);
 	g_input_stream_read(in, &(set->terminal_print), sizeof(gboolean), NULL,
 	NULL);
+	g_input_stream_read(in, &(set->title_insist), sizeof(gboolean), NULL,
+	NULL);
 	set->fmt_filename = main_ui_read_string(in);
 	set->fmt_output = main_ui_read_string(in);
 	set->regex_pattern = main_ui_read_string(in);
@@ -441,7 +443,8 @@ void task_set_save_to_file(task_set *set, GOutputStream *out) {
 	NULL);
 	g_output_stream_write(out, &(set->terminal_print), sizeof(gboolean), NULL,
 	NULL);
-
+	g_output_stream_write(out, &(set->title_insist), sizeof(gboolean), NULL,
+	NULL);
 	main_ui_save_string(set->fmt_filename, out);
 	main_ui_save_string(set->fmt_output, out);
 	main_ui_save_string(set->regex_pattern, out);
@@ -989,6 +992,7 @@ void task_parse_head(SoupMessage *msg, MyTaskMessage *task_msg) {
 			}
 			g_match_info_free(match_info);
 			task_load_html_doc(task_msg, set);
+			if(!set->title_insist){
 			xpobj = xmlXPathEvalExpression("//title/text()", task_msg->ctxt);
 			if (xpobj != NULL) {
 				switch (xpobj->type) {
@@ -1009,6 +1013,8 @@ void task_parse_head(SoupMessage *msg, MyTaskMessage *task_msg) {
 				}
 				xmlXPathFreeObject(xpobj);
 			}
+			}
+
 		}
 		g_hash_table_unref(type_table);
 	}
