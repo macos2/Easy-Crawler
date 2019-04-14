@@ -13,7 +13,7 @@ typedef struct {
 	GtkEntry *url_entry, *xpath_entry,*fmt_filename;
 	GtkFileChooserButton *source_filename;
 	GtkCheckButton *xpath_check, *file_check, *terminal_check,
-			*output_modify,*title_insist;
+			*output_modify,*title_insist,*nonnull_break;
 	GtkEntryBuffer *fmt_output,*regex_pattern;
 	GtkTextBuffer *regex_test_text,*result_text;
 } MyTaskSettingPrivate;
@@ -60,6 +60,9 @@ static void my_task_setting_class_init(MyTaskSettingClass *klass) {
 			result_text);
 	gtk_widget_class_bind_template_child_private(klass, MyTaskSetting,
 			title_insist);
+	gtk_widget_class_bind_template_child_private(klass, MyTaskSetting,
+			nonnull_break);
+
 	gtk_widget_class_bind_template_callback(klass,my_task_setting_test);
 	g_signal_new("test",MY_TYPE_TASK_SETTING,G_SIGNAL_RUN_LAST,G_STRUCT_OFFSET(MyTaskSettingClass,test),NULL,NULL,NULL,G_TYPE_POINTER,3,G_TYPE_POINTER,G_TYPE_POINTER,G_TYPE_POINTER,NULL);
 }
@@ -92,6 +95,7 @@ MyTaskSetting *my_task_setting_new(task_set *set) {
 	gtk_toggle_button_set_active(priv->xpath_check, set->search_xpath);
 	gtk_toggle_button_set_active(priv->file_check, set->output_file);
 	gtk_toggle_button_set_active(priv->title_insist,set->title_insist);
+	gtk_toggle_button_set_active(priv->nonnull_break,set->nonnull_break);
 	if (set->output_modify) {
 		gtk_toggle_button_set_active(priv->output_modify, TRUE);
 	}
@@ -158,6 +162,7 @@ void my_task_setting_get_set(MyTaskSetting *self, task_set *set) {
 	set->output_file = gtk_toggle_button_get_active(priv->file_check);
 	set->terminal_print = gtk_toggle_button_get_active(priv->terminal_check);
 	set->title_insist=gtk_toggle_button_get_active(priv->title_insist);
+	set->nonnull_break=gtk_toggle_button_get_active(priv->nonnull_break);
 	set->fmt_filename=g_strdup(gtk_entry_get_text(priv->fmt_filename));
 	set->regex_pattern=g_strdup(gtk_entry_buffer_get_text(priv->regex_pattern));
 	set->fmt_output=g_strdup(gtk_entry_buffer_get_text(priv->fmt_output));

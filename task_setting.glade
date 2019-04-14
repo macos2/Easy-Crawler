@@ -2,13 +2,8 @@
 <!-- Generated with glade 3.22.1 -->
 <interface>
   <requires lib="gtk+" version="3.20"/>
-  <object class="GtkSizeGroup">
-    <property name="mode">both</property>
-  </object>
-  <object class="GtkEntryBuffer" id="fmt_output"/>
-  <object class="GtkEntryBuffer" id="regex_pattern"/>
   <template class="MyTaskSetting" parent="GtkDialog">
-    <property name="width_request">350</property>
+    <property name="width_request">400</property>
     <property name="can_focus">False</property>
     <property name="window_position">mouse</property>
     <property name="default_width">-1</property>
@@ -91,13 +86,13 @@
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
                         <property name="row_spacing">5</property>
-                        <property name="row_homogeneous">True</property>
                         <child>
                           <object class="GtkRadioButton" id="source_file">
                             <property name="label" translatable="yes">读取文件</property>
                             <property name="visible">True</property>
                             <property name="can_focus">True</property>
                             <property name="receives_default">False</property>
+                            <property name="halign">start</property>
                             <property name="draw_indicator">True</property>
                             <property name="group">url</property>
                           </object>
@@ -124,6 +119,7 @@
                             <property name="visible">True</property>
                             <property name="can_focus">True</property>
                             <property name="receives_default">False</property>
+                            <property name="halign">start</property>
                             <property name="active">True</property>
                             <property name="draw_indicator">True</property>
                           </object>
@@ -138,6 +134,7 @@
                             <property name="visible">True</property>
                             <property name="can_focus">True</property>
                             <property name="receives_default">False</property>
+                            <property name="halign">start</property>
                             <property name="draw_indicator">True</property>
                             <property name="group">url</property>
                           </object>
@@ -165,6 +162,7 @@
                             <property name="can_focus">True</property>
                             <property name="receives_default">False</property>
                             <property name="tooltip_text" translatable="yes">处理及输出网页内容时，沿用上一级网页标题。</property>
+                            <property name="halign">start</property>
                             <property name="draw_indicator">True</property>
                           </object>
                           <packing>
@@ -185,7 +183,7 @@
                 </child>
               </object>
               <packing>
-                <property name="left_attach">1</property>
+                <property name="left_attach">0</property>
                 <property name="top_attach">0</property>
               </packing>
             </child>
@@ -233,101 +231,146 @@
                           </packing>
                         </child>
                         <child>
-                          <object class="GtkFrame">
+                          <object class="GtkExpander">
                             <property name="visible">True</property>
-                            <property name="can_focus">False</property>
-                            <property name="label_xalign">0</property>
-                            <property name="shadow_type">in</property>
+                            <property name="can_focus">True</property>
                             <child>
-                              <object class="GtkAlignment">
+                              <object class="GtkBox">
                                 <property name="visible">True</property>
                                 <property name="can_focus">False</property>
-                                <property name="left_padding">12</property>
+                                <property name="orientation">vertical</property>
+                                <property name="spacing">5</property>
                                 <child>
-                                  <object class="GtkGrid">
+                                  <object class="GtkFrame">
                                     <property name="visible">True</property>
                                     <property name="can_focus">False</property>
-                                    <property name="margin_left">5</property>
-                                    <property name="margin_right">5</property>
-                                    <property name="margin_top">5</property>
-                                    <property name="margin_bottom">5</property>
-                                    <property name="row_spacing">5</property>
-                                    <property name="column_spacing">5</property>
+                                    <property name="label_xalign">0</property>
+                                    <property name="shadow_type">in</property>
                                     <child>
-                                      <object class="GtkLabel">
+                                      <object class="GtkGrid">
                                         <property name="visible">True</property>
                                         <property name="can_focus">False</property>
-                                        <property name="label" translatable="yes">正规表达式</property>
-                                      </object>
-                                      <packing>
-                                        <property name="left_attach">0</property>
-                                        <property name="top_attach">0</property>
-                                      </packing>
-                                    </child>
-                                    <child>
-                                      <object class="GtkLabel">
-                                        <property name="visible">True</property>
-                                        <property name="can_focus">False</property>
-                                        <property name="label" translatable="yes">输出格式</property>
-                                      </object>
-                                      <packing>
-                                        <property name="left_attach">0</property>
-                                        <property name="top_attach">1</property>
-                                      </packing>
-                                    </child>
-                                    <child>
-                                      <object class="GtkEntry">
-                                        <property name="visible">True</property>
-                                        <property name="can_focus">True</property>
-                                        <property name="tooltip_text" translatable="yes">匹配的正规表达式，留空则跳过匹配。</property>
-                                        <property name="buffer">regex_pattern</property>
-                                      </object>
-                                      <packing>
-                                        <property name="left_attach">1</property>
-                                        <property name="top_attach">0</property>
-                                      </packing>
-                                    </child>
-                                    <child>
-                                      <object class="GtkEntry">
-                                        <property name="visible">True</property>
-                                        <property name="can_focus">True</property>
-                                        <property name="tooltip_text" translatable="yes">%w:网页标题 %f:xpath内容 %u:网页URI
+                                        <property name="margin_top">5</property>
+                                        <property name="margin_bottom">5</property>
+                                        <property name="row_spacing">5</property>
+                                        <property name="column_spacing">5</property>
+                                        <property name="row_homogeneous">True</property>
+                                        <child>
+                                          <object class="GtkLabel">
+                                            <property name="visible">True</property>
+                                            <property name="can_focus">False</property>
+                                            <property name="halign">center</property>
+                                            <property name="label" translatable="yes">匹配表达式</property>
+                                          </object>
+                                          <packing>
+                                            <property name="left_attach">0</property>
+                                            <property name="top_attach">0</property>
+                                          </packing>
+                                        </child>
+                                        <child>
+                                          <object class="GtkLabel">
+                                            <property name="visible">True</property>
+                                            <property name="can_focus">False</property>
+                                            <property name="halign">end</property>
+                                            <property name="label" translatable="yes">输出格式</property>
+                                          </object>
+                                          <packing>
+                                            <property name="left_attach">0</property>
+                                            <property name="top_attach">1</property>
+                                          </packing>
+                                        </child>
+                                        <child>
+                                          <object class="GtkEntry">
+                                            <property name="visible">True</property>
+                                            <property name="can_focus">True</property>
+                                            <property name="tooltip_text" translatable="yes">%w:网页标题 %f:xpath内容 %u:网页URI
 留空则直接输出xpath内容。
 </property>
-                                        <property name="buffer">fmt_output</property>
+                                            <property name="buffer">fmt_output</property>
+                                          </object>
+                                          <packing>
+                                            <property name="left_attach">1</property>
+                                            <property name="top_attach">1</property>
+                                          </packing>
+                                        </child>
+                                        <child>
+                                          <object class="GtkButton">
+                                            <property name="label" translatable="yes">测试</property>
+                                            <property name="visible">True</property>
+                                            <property name="can_focus">True</property>
+                                            <property name="receives_default">True</property>
+                                            <signal name="clicked" handler="gtk_widget_show" object="RegexTest" swapped="yes"/>
+                                          </object>
+                                          <packing>
+                                            <property name="left_attach">1</property>
+                                            <property name="top_attach">2</property>
+                                          </packing>
+                                        </child>
+                                        <child>
+                                          <object class="GtkLabel">
+                                            <property name="visible">True</property>
+                                            <property name="can_focus">False</property>
+                                          </object>
+                                          <packing>
+                                            <property name="left_attach">0</property>
+                                            <property name="top_attach">2</property>
+                                          </packing>
+                                        </child>
+                                        <child>
+                                          <object class="GtkEntry">
+                                            <property name="visible">True</property>
+                                            <property name="can_focus">True</property>
+                                            <property name="tooltip_text" translatable="yes">匹配的正规表达式，留空则跳过匹配。</property>
+                                            <property name="hexpand">True</property>
+                                            <property name="buffer">regex_pattern</property>
+                                          </object>
+                                          <packing>
+                                            <property name="left_attach">1</property>
+                                            <property name="top_attach">0</property>
+                                          </packing>
+                                        </child>
                                       </object>
-                                      <packing>
-                                        <property name="left_attach">1</property>
-                                        <property name="top_attach">1</property>
-                                      </packing>
                                     </child>
-                                    <child>
-                                      <object class="GtkButton">
-                                        <property name="label" translatable="yes">测试</property>
+                                    <child type="label">
+                                      <object class="GtkCheckButton" id="output_modify">
+                                        <property name="label" translatable="yes">结果修整</property>
                                         <property name="visible">True</property>
                                         <property name="can_focus">True</property>
-                                        <property name="receives_default">True</property>
-                                        <signal name="clicked" handler="gtk_widget_show" object="RegexTest" swapped="yes"/>
+                                        <property name="receives_default">False</property>
+                                        <property name="draw_indicator">True</property>
                                       </object>
-                                      <packing>
-                                        <property name="left_attach">1</property>
-                                        <property name="top_attach">2</property>
-                                      </packing>
-                                    </child>
-                                    <child>
-                                      <placeholder/>
                                     </child>
                                   </object>
+                                  <packing>
+                                    <property name="expand">False</property>
+                                    <property name="fill">True</property>
+                                    <property name="position">0</property>
+                                  </packing>
+                                </child>
+                                <child>
+                                  <object class="GtkCheckButton" id="nonnull_break">
+                                    <property name="label" translatable="yes">若有分析结果，停止往下一级传递。</property>
+                                    <property name="visible">True</property>
+                                    <property name="can_focus">True</property>
+                                    <property name="receives_default">False</property>
+                                    <property name="tooltip_text" translatable="yes">在网页内分析Xpath结果，若结果非空，则停止网页下一级任务执行。
+如：在网页内选出视频最高分辨率的链接，若本任务的高分辨率链接已找到，则停止低一级的分辨率任务(下级任务)的执行。</property>
+                                    <property name="halign">start</property>
+                                    <property name="draw_indicator">True</property>
+                                  </object>
+                                  <packing>
+                                    <property name="expand">False</property>
+                                    <property name="fill">True</property>
+                                    <property name="position">1</property>
+                                  </packing>
                                 </child>
                               </object>
                             </child>
                             <child type="label">
-                              <object class="GtkCheckButton" id="output_modify">
-                                <property name="label" translatable="yes">结果修整</property>
+                              <object class="GtkLabel">
                                 <property name="visible">True</property>
-                                <property name="can_focus">True</property>
-                                <property name="receives_default">False</property>
-                                <property name="draw_indicator">True</property>
+                                <property name="can_focus">False</property>
+                                <property name="label" translatable="yes">其它选项</property>
                               </object>
                             </child>
                           </object>
@@ -341,15 +384,17 @@
                   </object>
                 </child>
                 <child type="label">
-                  <object class="GtkLabel">
-                    <property name="visible">True</property>
-                    <property name="can_focus">False</property>
+                  <object class="GtkCheckButton" id="xpath_check">
                     <property name="label" translatable="yes">Xpath表达式</property>
+                    <property name="visible">True</property>
+                    <property name="can_focus">True</property>
+                    <property name="receives_default">False</property>
+                    <property name="draw_indicator">True</property>
                   </object>
                 </child>
               </object>
               <packing>
-                <property name="left_attach">1</property>
+                <property name="left_attach">0</property>
                 <property name="top_attach">1</property>
               </packing>
             </child>
@@ -419,15 +464,19 @@ example:
                   </object>
                 </child>
                 <child type="label">
-                  <object class="GtkLabel">
-                    <property name="visible">True</property>
-                    <property name="can_focus">False</property>
+                  <object class="GtkCheckButton" id="file_check">
                     <property name="label" translatable="yes">写入文件</property>
+                    <property name="visible">True</property>
+                    <property name="can_focus">True</property>
+                    <property name="receives_default">False</property>
+                    <property name="tooltip_text" translatable="yes">将链接Respon内容写入文件(相当于下载文件)。
+若设置了寻找Xpath节点，则将节点内容及输出属性(如果设置了)以文本形式写入文件。</property>
+                    <property name="draw_indicator">True</property>
                   </object>
                 </child>
               </object>
               <packing>
-                <property name="left_attach">1</property>
+                <property name="left_attach">0</property>
                 <property name="top_attach">2</property>
               </packing>
             </child>
@@ -438,48 +487,13 @@ example:
                 <property name="can_focus">True</property>
                 <property name="receives_default">False</property>
                 <property name="tooltip_text" translatable="yes">是否在控制终端输出(Respon内容或Xpath节点内容、属性)</property>
+                <property name="halign">start</property>
                 <property name="draw_indicator">True</property>
               </object>
               <packing>
-                <property name="left_attach">1</property>
+                <property name="left_attach">0</property>
                 <property name="top_attach">3</property>
               </packing>
-            </child>
-            <child>
-              <object class="GtkCheckButton" id="file_check">
-                <property name="label" translatable="yes">
-</property>
-                <property name="visible">True</property>
-                <property name="can_focus">True</property>
-                <property name="receives_default">False</property>
-                <property name="tooltip_text" translatable="yes">将链接Respon内容写入文件(相当于下载文件)。
-若设置了寻找Xpath节点，则将节点内容及输出属性(如果设置了)以文本形式写入文件。</property>
-                <property name="draw_indicator">True</property>
-              </object>
-              <packing>
-                <property name="left_attach">0</property>
-                <property name="top_attach">2</property>
-              </packing>
-            </child>
-            <child>
-              <object class="GtkCheckButton" id="xpath_check">
-                <property name="label" translatable="yes">
-</property>
-                <property name="visible">True</property>
-                <property name="can_focus">True</property>
-                <property name="receives_default">False</property>
-                <property name="draw_indicator">True</property>
-              </object>
-              <packing>
-                <property name="left_attach">0</property>
-                <property name="top_attach">1</property>
-              </packing>
-            </child>
-            <child>
-              <placeholder/>
-            </child>
-            <child>
-              <placeholder/>
             </child>
           </object>
           <packing>
@@ -495,10 +509,15 @@ example:
       <action-widget response="-6">button2</action-widget>
     </action-widgets>
   </template>
+  <object class="GtkSizeGroup">
+    <property name="mode">both</property>
+  </object>
+  <object class="GtkEntryBuffer" id="fmt_output"/>
+  <object class="GtkEntryBuffer" id="regex_pattern"/>
   <object class="GtkTextBuffer" id="regex_test_text"/>
   <object class="GtkTextBuffer" id="result_text"/>
   <object class="GtkDialog" id="RegexTest">
-    <property name="width_request">350</property>
+    <property name="width_request">400</property>
     <property name="can_focus">False</property>
     <property name="modal">True</property>
     <property name="destroy_with_parent">True</property>

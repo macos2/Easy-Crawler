@@ -125,8 +125,8 @@
                     <property name="can_focus">False</property>
                     <property name="margin_right">1</property>
                     <property name="margin_bottom">1</property>
-                    <property name="icon_name">applications-system-symbolic</property>
-                    <property name="icon_size">3</property>
+                    <property name="icon_name">preferences-system-symbolic</property>
+                    <property name="icon_size">2</property>
                   </object>
                 </child>
               </object>

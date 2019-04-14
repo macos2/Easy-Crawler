@@ -20,7 +20,7 @@ enum{
 typedef struct {
 	guint source;
 	gchar *xpath,*source_name,*fmt_filename,*regex_pattern,*regex_test_text,*fmt_output;
-	gboolean search_xpath,output_modify,output_file,terminal_print,title_insist;
+	gboolean search_xpath,output_modify,output_file,terminal_print,title_insist,nonnull_break;
 }task_set;
 
 
