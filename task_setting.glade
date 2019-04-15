@@ -2,6 +2,11 @@
 <!-- Generated with glade 3.22.1 -->
 <interface>
   <requires lib="gtk+" version="3.20"/>
+  <object class="GtkSizeGroup">
+    <property name="mode">both</property>
+  </object>
+  <object class="GtkEntryBuffer" id="fmt_output"/>
+  <object class="GtkEntryBuffer" id="regex_pattern"/>
   <template class="MyTaskSetting" parent="GtkDialog">
     <property name="width_request">400</property>
     <property name="can_focus">False</property>
@@ -170,6 +175,22 @@
                             <property name="top_attach">2</property>
                           </packing>
                         </child>
+                        <child>
+                          <object class="GtkCheckButton" id="same_uri_skip">
+                            <property name="label" translatable="yes">跳过重复URI</property>
+                            <property name="visible">True</property>
+                            <property name="can_focus">True</property>
+                            <property name="receives_default">False</property>
+                            <property name="draw_indicator">True</property>
+                          </object>
+                          <packing>
+                            <property name="left_attach">0</property>
+                            <property name="top_attach">3</property>
+                          </packing>
+                        </child>
+                        <child>
+                          <placeholder/>
+                        </child>
                       </object>
                     </child>
                   </object>
@@ -234,6 +255,7 @@
                           <object class="GtkExpander">
                             <property name="visible">True</property>
                             <property name="can_focus">True</property>
+                            <property name="expanded">True</property>
                             <child>
                               <object class="GtkBox">
                                 <property name="visible">True</property>
@@ -348,8 +370,22 @@
                                   </packing>
                                 </child>
                                 <child>
+                                  <object class="GtkCheckButton" id="link_wait">
+                                    <property name="label" translatable="yes">等待链接任务完成</property>
+                                    <property name="visible">True</property>
+                                    <property name="can_focus">True</property>
+                                    <property name="receives_default">False</property>
+                                    <property name="draw_indicator">True</property>
+                                  </object>
+                                  <packing>
+                                    <property name="expand">False</property>
+                                    <property name="fill">True</property>
+                                    <property name="position">1</property>
+                                  </packing>
+                                </child>
+                                <child>
                                   <object class="GtkCheckButton" id="nonnull_break">
-                                    <property name="label" translatable="yes">若有分析结果，停止往下一级传递。</property>
+                                    <property name="label" translatable="yes">分析结果非空，停止执行下一任务。</property>
                                     <property name="visible">True</property>
                                     <property name="can_focus">True</property>
                                     <property name="receives_default">False</property>
@@ -361,7 +397,7 @@
                                   <packing>
                                     <property name="expand">False</property>
                                     <property name="fill">True</property>
-                                    <property name="position">1</property>
+                                    <property name="position">2</property>
                                   </packing>
                                 </child>
                               </object>
@@ -509,11 +545,6 @@ example:
       <action-widget response="-6">button2</action-widget>
     </action-widgets>
   </template>
-  <object class="GtkSizeGroup">
-    <property name="mode">both</property>
-  </object>
-  <object class="GtkEntryBuffer" id="fmt_output"/>
-  <object class="GtkEntryBuffer" id="regex_pattern"/>
   <object class="GtkTextBuffer" id="regex_test_text"/>
   <object class="GtkTextBuffer" id="result_text"/>
   <object class="GtkDialog" id="RegexTest">

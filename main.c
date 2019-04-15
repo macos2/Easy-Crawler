@@ -38,6 +38,8 @@ void my_app_init() {
 			my_task_message_free);
 	my_curl_set_get_proxy_callback(mycurl, task_my_curl_get_proxy_callback,
 			my_task_message_free);
+	my_curl_set_finish_callback(mycurl, task_my_curl_finish_callback,
+			my_task_message_free);
 
 	down_win = gtk_window_new(GTK_WINDOW_TOPLEVEL);
 	gtk_container_add(down_win, down_ui);

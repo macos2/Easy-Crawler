@@ -60,7 +60,7 @@ GArray *task_xpath_regex_match(const gchar *regex_pattern,
 		const gchar *eval_content);
 
 void runing_count_modify() {
-	runing_count--;
+	if(runing_count>0)runing_count--;
 }
 
 void format_size(gdouble *size, gchar *i) {
@@ -256,12 +256,14 @@ MyTask * operater_add_task(MyOperater *self, gpointer userdata) {
 	g_hash_table_insert(data->task_set, task, set);
 	set->source_name = g_strdup("");
 	set->xpath = g_strdup("//a/@href");
-	set->search_xpath = TRUE;
 	set->fmt_filename = g_strdup("%f");
 	set->source = TASK_SOURCE_LINKER;
 	set->regex_pattern = g_strdup(".+");
 	set->fmt_output = g_strdup("%f");
 	set->regex_test_text = g_strdup("");
+	set->search_xpath = TRUE;
+	set->link_wait=TRUE;
+	set->same_uri_skip=TRUE;
 	g_signal_connect(task, "remove_task", task_remove_task, data);
 	g_signal_connect(task, "content_clicked", task_content_clicked, data);
 	g_signal_connect(task, "link_del", task_link_del_clicked, data);
@@ -425,10 +427,14 @@ void task_set_read_from_file(task_set *set, GInputStream *in) {
 	NULL);
 	g_input_stream_read(in, &(set->nonnull_break), sizeof(gboolean), NULL,
 	NULL);
+	g_input_stream_read(in, &(set->link_wait), sizeof(gboolean), NULL,
+	NULL);
+	g_input_stream_read(in, &(set->same_uri_skip), sizeof(gboolean), NULL,
+	NULL);
 	//保留字段,跳过读取
 	gint i;
 	gboolean r;
-	for (i = 5; i != 0; i--) {
+	for (i = 3; i != 0; i--) {
 		g_input_stream_read(in, &r, sizeof(gboolean), NULL,
 		NULL);
 	}
@@ -456,8 +462,12 @@ void task_set_save_to_file(task_set *set, GOutputStream *out) {
 	NULL);
 	g_output_stream_write(out, &(set->nonnull_break), sizeof(gboolean), NULL,
 	NULL);
+	g_output_stream_write(out, &(set->link_wait), sizeof(gboolean), NULL,
+	NULL);
+	g_output_stream_write(out, &(set->same_uri_skip), sizeof(gboolean), NULL,
+	NULL);
 	//保留字段,方便日后扩展
-	gint i = 5;
+	gint i = 3;
 	gboolean r[i];
 	g_output_stream_write(out, r, sizeof(gboolean) * i, NULL,
 	NULL);
@@ -910,6 +920,11 @@ gchar ** task_my_curl_get_proxy_callback(gchar *uri, MyTaskMessage *task_msg) {
 }
 ;
 
+void task_my_curl_finish_callback(MyTaskMessage *task_msg){
+	task_set *set=task_get_set(task_msg->task);
+	if(set->link_wait)runing_count_modify();
+}
+
 void task_thread_output_file(task_set *set, MyTaskMessage *task_msg,
 		gchar *xpath_result) {
 	GError *error = NULL;
@@ -1159,7 +1174,7 @@ GArray *task_xpath_content_fmt(const MyTaskMessage *task_msg, const gchar *fmt,
 
 void task_xpath_output(MyTaskMessage *task_msg, const gchar *content) {
 	MyTaskMessage *sub_task_msg;
-	task_set *sub_set;
+	task_set *sub_set,*set;
 	SoupURI *uri = soup_uri_new_with_base(task_msg->uri, content);
 	GList *task_link = task_get_linklist(task_msg->task);
 	while (task_link != NULL) {
@@ -1172,7 +1187,8 @@ void task_xpath_output(MyTaskMessage *task_msg, const gchar *content) {
 					task_link->data, task_id++);
 			sub_task_msg->web_title = g_strdup(task_msg->web_title);
 			sub_set = task_get_set(task_link->data);
-			if (sub_set->search_xpath == FALSE && sub_set->output_file) {
+			set=task_get_set(task_msg->task);
+			if ((sub_set->search_xpath == FALSE && sub_set->output_file)||set->link_wait) {
 				runing_count++;
 				task_source(sub_task_msg);
 			} else
@@ -1365,7 +1381,7 @@ gboolean task_source(MyTaskMessage *task_msg) {
 		runing_count_modify();
 		return G_SOURCE_REMOVE;
 	}
-	if (task_check_if_same_uri(task_msg) && task_msg->msg == NULL) {
+	if (task_setting->same_uri_skip&&task_check_if_same_uri(task_msg) && task_msg->msg == NULL) {
 		//如果载入链接为空或链接重复载入，则停止任务处理
 		uri = soup_uri_to_string(task_msg->uri, FALSE);
 		main_log(task_msg, "Skip Same Uri\n\tUri:%s\n", uri);
@@ -1381,9 +1397,10 @@ gboolean task_source(MyTaskMessage *task_msg) {
 			main_log(task_msg, "DownLoad\n\tUri:%s\n", uri);
 			my_curl_add_download(mycurl, uri, NULL, NULL, NULL, NULL, NULL,
 					g_object_ref(task_msg), g_object_ref(task_msg),
-					g_object_ref(task_msg), FALSE);
+					g_object_ref(task_msg),g_object_ref(task_msg), FALSE);
 			g_object_unref(task_msg);
-			runing_count_modify();
+			if(!task_setting->link_wait)runing_count_modify();
+
 		} else {
 			main_log(task_msg, "Load Uri\n\tUri:%s\n", uri);
 			msg = soup_message_new_from_uri("GET", task_msg->uri);

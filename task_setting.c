@@ -13,7 +13,7 @@ typedef struct {
 	GtkEntry *url_entry, *xpath_entry,*fmt_filename;
 	GtkFileChooserButton *source_filename;
 	GtkCheckButton *xpath_check, *file_check, *terminal_check,
-			*output_modify,*title_insist,*nonnull_break;
+			*output_modify,*title_insist,*nonnull_break,*link_wait,*same_uri_skip;
 	GtkEntryBuffer *fmt_output,*regex_pattern;
 	GtkTextBuffer *regex_test_text,*result_text;
 } MyTaskSettingPrivate;
@@ -62,6 +62,10 @@ static void my_task_setting_class_init(MyTaskSettingClass *klass) {
 			title_insist);
 	gtk_widget_class_bind_template_child_private(klass, MyTaskSetting,
 			nonnull_break);
+	gtk_widget_class_bind_template_child_private(klass, MyTaskSetting,
+			link_wait);
+	gtk_widget_class_bind_template_child_private(klass, MyTaskSetting,
+			same_uri_skip);
 
 	gtk_widget_class_bind_template_callback(klass,my_task_setting_test);
 	g_signal_new("test",MY_TYPE_TASK_SETTING,G_SIGNAL_RUN_LAST,G_STRUCT_OFFSET(MyTaskSettingClass,test),NULL,NULL,NULL,G_TYPE_POINTER,3,G_TYPE_POINTER,G_TYPE_POINTER,G_TYPE_POINTER,NULL);
@@ -96,6 +100,8 @@ MyTaskSetting *my_task_setting_new(task_set *set) {
 	gtk_toggle_button_set_active(priv->file_check, set->output_file);
 	gtk_toggle_button_set_active(priv->title_insist,set->title_insist);
 	gtk_toggle_button_set_active(priv->nonnull_break,set->nonnull_break);
+	gtk_toggle_button_set_active(priv->link_wait,set->link_wait);
+	gtk_toggle_button_set_active(priv->same_uri_skip,set->same_uri_skip);
 	if (set->output_modify) {
 		gtk_toggle_button_set_active(priv->output_modify, TRUE);
 	}
@@ -163,6 +169,8 @@ void my_task_setting_get_set(MyTaskSetting *self, task_set *set) {
 	set->terminal_print = gtk_toggle_button_get_active(priv->terminal_check);
 	set->title_insist=gtk_toggle_button_get_active(priv->title_insist);
 	set->nonnull_break=gtk_toggle_button_get_active(priv->nonnull_break);
+	set->link_wait=gtk_toggle_button_get_active(priv->link_wait);
+	set->same_uri_skip=gtk_toggle_button_get_active(priv->same_uri_skip);
 	set->fmt_filename=g_strdup(gtk_entry_get_text(priv->fmt_filename));
 	set->regex_pattern=g_strdup(gtk_entry_buffer_get_text(priv->regex_pattern));
 	set->fmt_output=g_strdup(gtk_entry_buffer_get_text(priv->fmt_output));
