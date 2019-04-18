@@ -44,7 +44,7 @@ void my_app_init() {
 	down_win = gtk_window_new(GTK_WINDOW_TOPLEVEL);
 	gtk_container_add(down_win, down_ui);
 	gtk_widget_hide(down_win);
-	g_signal_connect(down_win, "delete-event", gtk_widget_hide, NULL);
+	g_signal_connect(down_win, "delete-event", gtk_widget_hide_on_delete, NULL);
 	my_download_ui_set_default_dir(down_ui, OUTPUT_DIR);
 	g_date_time_unref(time);
 

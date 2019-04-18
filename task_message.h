@@ -27,7 +27,7 @@ typedef struct _MyTaskMessage{
 	xmlDoc *doc;
 	xmlXPathContext *ctxt;
 	gpointer task;
-	gint id;
+	gint id,reply;
 	gchar *filename, *web_title,*charset,*local,*suggest_filename,*utf8_conv;
 	void *list_row;
 	gboolean *cancel;

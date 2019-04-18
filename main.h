@@ -59,8 +59,9 @@ GArray *task_xpath_content_fmt(const MyTaskMessage *task_msg, const gchar *fmt,
 GArray *task_xpath_regex_match(const gchar *regex_pattern,
 		const gchar *eval_content);
 
-void runing_count_modify() {
-	if(runing_count>0)runing_count--;
+void runing_count_decrease() {
+	if (runing_count > 0)
+		runing_count--;
 }
 
 void format_size(gdouble *size, gchar *i) {
@@ -262,8 +263,8 @@ MyTask * operater_add_task(MyOperater *self, gpointer userdata) {
 	set->fmt_output = g_strdup("%f");
 	set->regex_test_text = g_strdup("");
 	set->search_xpath = TRUE;
-	set->link_wait=TRUE;
-	set->same_uri_skip=TRUE;
+	//set->link_wait = TRUE;
+	set->same_uri_skip = TRUE;
 	g_signal_connect(task, "remove_task", task_remove_task, data);
 	g_signal_connect(task, "content_clicked", task_content_clicked, data);
 	g_signal_connect(task, "link_del", task_link_del_clicked, data);
@@ -920,9 +921,10 @@ gchar ** task_my_curl_get_proxy_callback(gchar *uri, MyTaskMessage *task_msg) {
 }
 ;
 
-void task_my_curl_finish_callback(MyTaskMessage *task_msg){
-	task_set *set=task_get_set(task_msg->task);
-	if(set->link_wait)runing_count_modify();
+void task_my_curl_finish_callback(MyTaskMessage *task_msg) {
+	task_set *set = task_get_set(task_msg->task);
+	if (set->link_wait)
+		runing_count_decrease();
 }
 
 void task_thread_output_file(task_set *set, MyTaskMessage *task_msg,
@@ -1174,7 +1176,7 @@ GArray *task_xpath_content_fmt(const MyTaskMessage *task_msg, const gchar *fmt,
 
 void task_xpath_output(MyTaskMessage *task_msg, const gchar *content) {
 	MyTaskMessage *sub_task_msg;
-	task_set *sub_set,*set;
+	task_set *sub_set, *set;
 	SoupURI *uri = soup_uri_new_with_base(task_msg->uri, content);
 	GList *task_link = task_get_linklist(task_msg->task);
 	while (task_link != NULL) {
@@ -1187,8 +1189,9 @@ void task_xpath_output(MyTaskMessage *task_msg, const gchar *content) {
 					task_link->data, task_id++);
 			sub_task_msg->web_title = g_strdup(task_msg->web_title);
 			sub_set = task_get_set(task_link->data);
-			set=task_get_set(task_msg->task);
-			if ((sub_set->search_xpath == FALSE && sub_set->output_file)||set->link_wait) {
+			set = task_get_set(task_msg->task);
+			if ((sub_set->search_xpath == FALSE && sub_set->output_file)
+					|| set->link_wait) {
 				runing_count++;
 				task_source(sub_task_msg);
 			} else
@@ -1212,7 +1215,8 @@ gint task_xpath_eval(MyTaskMessage *task_msg) {
 	GArray *regex_arr, *fmt_arr;
 	GString *str = task_msg->xpath_result, *output_log = g_string_new("");
 	task_set *set = task_get_set(task_msg->task), *sub_set;
-	g_string_append_printf(output_log, "Parse Xpath\n\tURI:%s\n\tXPATH:%s\n",u,set->xpath);
+	g_string_append_printf(output_log, "Parse Xpath\n\tURI:%s\n\tXPATH:%s\n", u,
+			set->xpath);
 	//main_log(task_msg, "Parse Xpath\n\tXpath:%s\n", set->xpath);
 	xpobj = task_search_xpath(set, task_msg);
 	if (xpobj != NULL && xpobj->nodesetval != NULL) {
@@ -1288,10 +1292,11 @@ gint task_xpath_eval(MyTaskMessage *task_msg) {
 						g_array_free(fmt_arr, TRUE);
 					} else {
 						//Xpath结果不用修整
-						g_string_append_printf(output_log, "\t  \"%s\"\n", content);
+						g_string_append_printf(output_log, "\t  \"%s\"\n",
+								content);
 						/*main_log(task_msg,
-								"Output Xpath value\n\tXpath:%s\n\tValue:%s\n",
-								set->xpath, content);*/
+						 "Output Xpath value\n\tXpath:%s\n\tValue:%s\n",
+						 set->xpath, content);*/
 						task_xpath_output(task_msg, content);
 						output++;
 					}
@@ -1301,7 +1306,7 @@ gint task_xpath_eval(MyTaskMessage *task_msg) {
 		} else {
 			for (i = 0; i < ns->nodeNr; i++) {
 				content = xmlNodeGetContent(ns->nodeTab[i]);
-				if (content == NULL){
+				if (content == NULL) {
 					i++;
 					continue;
 				}
@@ -1316,7 +1321,7 @@ gint task_xpath_eval(MyTaskMessage *task_msg) {
 	xmlXPathFreeObject(xpobj);
 	g_free(u);
 	main_log(task_msg, "%s", output_log->str);
-	g_string_free(output_log,TRUE);
+	g_string_free(output_log, TRUE);
 	return output;
 }
 
@@ -1352,7 +1357,7 @@ gboolean task_process(MyTaskMessage *task_msg) {
 		runing_count++;
 		task_process(task_msg);
 	}
-	runing_count_modify();
+	runing_count_decrease();
 	return G_SOURCE_REMOVE;
 }
 
@@ -1360,15 +1365,28 @@ void task_send_message_callback(SoupSession *session, SoupMessage *msg,
 		MyTaskMessage *task_msg) {
 	gchar *uri;
 	if (msg->status_code == SOUP_STATUS_OK) {
+		//网页载入成功
 		task_parse_head(msg, task_msg);
 		g_idle_add(task_process, task_msg);
 	} else {
+		//网页载入失败
 		uri = soup_uri_to_string(task_msg->uri, FALSE);
-		main_log(task_msg, "Load Uri Failed!!!\n\tUri:%s\n\tReson:%s\n", uri,
-				soup_status_get_phrase(msg->status_code));
+		if (task_msg->reply < my_download_ui_get_reply(down_ui)) {
+			//若失败次数少于允许重链接数目，重新连接。
+			task_msg->reply++;
+			task_msg->msg=g_object_ref(msg);
+			main_log(task_msg, "Try To Reload Uri \n\tUri:%s\n\tReson:%s\n\tReply:%d\n",
+					uri, soup_status_get_phrase(msg->status_code),task_msg->reply);
+			soup_session_queue_message(task_msg->session, msg,
+					task_send_message_callback, task_msg);
+		} else {
+			//若失败次数大于允许数目，停止继续链接。
+			main_log(task_msg, "Load Uri Failed!!!\n\tUri:%s\n\tReson:%s\n",
+					uri, soup_status_get_phrase(msg->status_code));
+			runing_count_decrease();
+			my_task_message_free(task_msg);
+		}
 		g_free(uri);
-		runing_count_modify();
-		my_task_message_free(task_msg);
 	}
 }
 
@@ -1378,16 +1396,17 @@ gboolean task_source(MyTaskMessage *task_msg) {
 	task_set *task_setting = task_get_set(task_msg->task);
 	if (task_msg->uri == NULL) {
 		my_task_message_free(task_msg);
-		runing_count_modify();
+		runing_count_decrease();
 		return G_SOURCE_REMOVE;
 	}
-	if (task_setting->same_uri_skip&&task_check_if_same_uri(task_msg) && task_msg->msg == NULL) {
+	if (task_setting->same_uri_skip
+			&& task_check_if_same_uri(task_msg) && task_msg->msg == NULL) {
 		//如果载入链接为空或链接重复载入，则停止任务处理
 		uri = soup_uri_to_string(task_msg->uri, FALSE);
 		main_log(task_msg, "Skip Same Uri\n\tUri:%s\n", uri);
 		g_free(uri);
 		my_task_message_free(task_msg);
-		runing_count_modify();
+		runing_count_decrease();
 		return G_SOURCE_REMOVE;
 	}
 	if (task_msg->msg == NULL) {
@@ -1397,9 +1416,10 @@ gboolean task_source(MyTaskMessage *task_msg) {
 			main_log(task_msg, "DownLoad\n\tUri:%s\n", uri);
 			my_curl_add_download(mycurl, uri, NULL, NULL, NULL, NULL, NULL,
 					g_object_ref(task_msg), g_object_ref(task_msg),
-					g_object_ref(task_msg),g_object_ref(task_msg), FALSE);
+					g_object_ref(task_msg), g_object_ref(task_msg), FALSE);
 			g_object_unref(task_msg);
-			if(!task_setting->link_wait)runing_count_modify();
+			if (!task_setting->link_wait)
+				runing_count_decrease();
 
 		} else {
 			main_log(task_msg, "Load Uri\n\tUri:%s\n", uri);

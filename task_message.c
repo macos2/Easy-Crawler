@@ -39,6 +39,7 @@ MyTaskMessage *my_task_message_new(SoupSession *session,SoupURI *uri,gpointer ta
 	msg->uri=uri;
 	msg->task=task;
 	msg->id=id;
+	msg->reply=0;
 	return msg;
 }
 ;
