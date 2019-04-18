@@ -719,8 +719,7 @@ void main_ui_setting(MyMainui *ui, gpointer userdata) {
 ;
 
 void main_ui_down_info(MyMainui *ui, gpointer userdata) {
-	gtk_widget_show_all(down_win);
-	gtk_widget_grab_focus(down_win);
+	gtk_window_present (down_win);
 }
 
 void clear_log_task_href(gpointer key, gpointer value, gpointer user_data) {
