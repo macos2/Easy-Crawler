@@ -19,7 +19,8 @@
 #include "task_setting.h"
 #include "task_message.h"
 #include "mainui_setting.h"
-#include "MyCurl.h"
+#include "MySoupDl.h"
+//#include "MyCurl.h"
 
 typedef struct {
 	MyOperater *operater;
@@ -42,7 +43,8 @@ GMutex *log_mutex, *log_task_href_mutex;
 GMutex notify_download_mutex;
 gboolean stop_thread;
 MyDownloadUi *down_ui;
-MyCurl *mycurl;
+//MyCurl *mycurl;
+MySoupDl *mysoupdl;
 GtkWindow *down_win;
 GRegex *fmt_filename_date, *fmt_filename_time, *fmt_filename_title,
 		*fmt_filename_org, *fmt_filename_uri, *meta_charset;
@@ -63,7 +65,7 @@ void runing_count_decrease() {
 	if (runing_count > 0)
 		runing_count--;
 }
-
+/*
 void format_size(gdouble *size, gchar *i) {
 	*i = 0;
 	while (*size > 1024) {
@@ -88,7 +90,7 @@ gchar *format_dlsize_size(gint64 dlsize, gint64 content_size) {
 	return g_strdup_printf("%3.2f %s/%3.2f %s", s1, size_unit[i], s2,
 			size_unit[j]);
 }
-
+*/
 op_data *operater_get_opdata(MyOperater *op) {
 	return g_hash_table_lookup(operater_to_opdata, op);
 }
@@ -869,7 +871,7 @@ char *task_thread_output_file_setname(task_set *set, MyTaskMessage *task_msg) {
 #endif
 	return abs_name;
 }
-
+/*
 gchar* task_curl_set_filename_callback(gchar *suggest_name,
 		MyTaskMessage *task_msg) {
 	gchar *name, *temp;
@@ -925,6 +927,25 @@ void task_my_curl_finish_callback(MyTaskMessage *task_msg) {
 	if (set->link_wait)
 		runing_count_decrease();
 }
+*/
+
+gchar* task_soup_dl_set_name(MySoupDl *dl,const gchar *uri,const gchar *suggest_name, MyTaskMessage *task_msg,gpointer data){
+gchar *name;
+if (task_msg == NULL)
+		return NULL;
+	task_set *set = task_get_set(task_msg->task);
+	g_free(task_msg->suggest_filename);
+	task_msg->suggest_filename = g_strdup(suggest_name);
+	name = task_thread_output_file_setname(set, task_msg);
+return name;
+};
+
+void task_soup_dl_download_finish(MySoupDl *dl,const gchar *uri,const gchar *filename,const gchar *local,MyTaskMessage *task_msg){
+	task_set *set = task_get_set(task_msg->task);
+	if (set->link_wait)
+		runing_count_decrease();
+	my_task_message_free(task_msg);
+};
 
 void task_thread_output_file(task_set *set, MyTaskMessage *task_msg,
 		gchar *xpath_result) {
@@ -1374,8 +1395,8 @@ void task_send_message_callback(SoupSession *session, SoupMessage *msg,
 			//若失败次数少于允许重链接数目，重新连接。
 			task_msg->reply++;
 			task_msg->msg=g_object_ref(msg);
-			main_log(task_msg, "Try To Reload Uri \n\tUri:%s\n\tReson:%s\n\tReply:%d\n",
-					uri, soup_status_get_phrase(msg->status_code),task_msg->reply);
+			main_log(task_msg, "Try To Reload Uri \n\tUri:%s\n\tFailed Reson:%s\n\tReply:%d / %d\n",
+					uri, soup_status_get_phrase(msg->status_code),task_msg->reply,my_download_ui_get_reply(down_ui));
 			soup_session_queue_message(task_msg->session, msg,
 					task_send_message_callback, task_msg);
 		} else {
@@ -1413,9 +1434,10 @@ gboolean task_source(MyTaskMessage *task_msg) {
 		if (task_setting->search_xpath == FALSE
 				&& task_setting->output_file == TRUE) {
 			main_log(task_msg, "DownLoad\n\tUri:%s\n", uri);
-			my_curl_add_download(mycurl, uri, NULL, NULL, NULL, NULL, NULL,
+			/*my_curl_add_download(mycurl, uri, NULL, NULL, NULL, NULL, NULL,
 					g_object_ref(task_msg), g_object_ref(task_msg),
-					g_object_ref(task_msg), g_object_ref(task_msg), FALSE);
+					g_object_ref(task_msg), g_object_ref(task_msg), FALSE);*/
+			my_soup_dl_add_download(mysoupdl,uri,g_object_ref(task_msg));
 			g_object_unref(task_msg);
 			if (!task_setting->link_wait)
 				runing_count_decrease();

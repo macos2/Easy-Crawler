@@ -18,7 +18,7 @@ void my_app_init() {
 	COOKIE_FILE = g_strdup_printf("%s%scookies.txt", OUTPUT_DIR,
 	G_DIR_SEPARATOR_S);
 	session = soup_session_new();
-	g_object_set(session, "timeout", 20, "ssl-strict", FALSE, NULL);
+	g_object_set(session, "timeout", 20, "ssl-strict", FALSE,"max-conns-per-host" ,G_MAXINT,"max-conns",G_MAXINT, NULL);
 	soup_session_add_feature(session,
 			soup_cookie_jar_text_new(COOKIE_FILE, FALSE));
 
@@ -30,7 +30,7 @@ void my_app_init() {
 	MAX_THREAD = 10;
 
 	down_ui = my_download_ui_new();
-	mycurl = my_curl_new(down_ui);
+	/*mycurl = my_curl_new(down_ui);
 	my_curl_set_set_cookies_callback(mycurl, task_curl_set_cookies_callback,
 			my_task_message_free);
 	my_curl_set_get_cookies_callback(mycurl, task_my_curl_get_cookies_callback);
@@ -39,8 +39,11 @@ void my_app_init() {
 	my_curl_set_get_proxy_callback(mycurl, task_my_curl_get_proxy_callback,
 			my_task_message_free);
 	my_curl_set_finish_callback(mycurl, task_my_curl_finish_callback,
-			my_task_message_free);
+			my_task_message_free);*/
 
+	mysoupdl=my_soup_dl_new(session,down_ui);
+	g_signal_connect(mysoupdl,"set_name",task_soup_dl_set_name,NULL);
+	g_signal_connect(mysoupdl,"download_finish",	task_soup_dl_download_finish,NULL);
 	down_win = gtk_window_new(GTK_WINDOW_TOPLEVEL);
 	gtk_container_add(down_win, down_ui);
 	gtk_widget_hide(down_win);
@@ -72,7 +75,8 @@ gboolean notify_thread_num(MyMainui *ui) {
 	MyTaskMessage *task_msg;
 	GtkStatusbar *status_bar = my_mainui_get_statusbar(ui);
 	GString *str = g_string_new("");
-	down_count = my_curl_get_downloading_count(mycurl, TRUE);
+	//down_count = my_curl_get_downloading_count(mycurl, TRUE);
+	down_count=my_soup_dl_get_downloading_count(mysoupdl,TRUE);
 	while (g_async_queue_length(process_queue) > 0 && runing_count < MAX_THREAD) {
 		task_msg = g_async_queue_pop(process_queue);
 		g_idle_add(task_source, task_msg);
