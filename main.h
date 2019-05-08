@@ -932,7 +932,7 @@ void task_my_curl_finish_callback(MyTaskMessage *task_msg) {
 gchar* task_soup_dl_set_name(MySoupDl *dl,const gchar *uri,const gchar *suggest_name, MyTaskMessage *task_msg,gpointer data){
 gchar *name;
 if (task_msg == NULL)
-		return NULL;
+		return g_strdup(suggest_name);
 	task_set *set = task_get_set(task_msg->task);
 	g_free(task_msg->suggest_filename);
 	task_msg->suggest_filename = g_strdup(suggest_name);
@@ -941,10 +941,12 @@ return name;
 };
 
 void task_soup_dl_download_finish(MySoupDl *dl,const gchar *uri,const gchar *filename,const gchar *local,MyTaskMessage *task_msg){
+	if(task_msg!=NULL){
 	task_set *set = task_get_set(task_msg->task);
 	if (set->link_wait)
 		runing_count_decrease();
 	my_task_message_free(task_msg);
+	}
 };
 
 void task_thread_output_file(task_set *set, MyTaskMessage *task_msg,
