@@ -932,7 +932,7 @@ void task_my_curl_finish_callback(MyTaskMessage *task_msg) {
 gchar* task_soup_dl_set_name(MySoupDl *dl,const gchar *uri,const gchar *suggest_name, MyTaskMessage *task_msg,gpointer data){
 gchar *name;
 if (task_msg == NULL)
-		return g_strdup(suggest_name);
+		return NULL;
 	task_set *set = task_get_set(task_msg->task);
 	g_free(task_msg->suggest_filename);
 	task_msg->suggest_filename = g_strdup(suggest_name);
@@ -940,12 +940,14 @@ if (task_msg == NULL)
 return name;
 };
 
-void task_soup_dl_download_finish(MySoupDl *dl,const gchar *uri,const gchar *filename,const gchar *local,MyTaskMessage *task_msg){
-	if(task_msg!=NULL){
-	task_set *set = task_get_set(task_msg->task);
+void task_soup_dl_download_finish(MySoupDl *dl,const gchar *uri,const gchar *filename,const gchar *local,MyTaskMessage **task_msg){
+	if(*task_msg!=NULL){
+		MyTaskMessage *t=*task_msg;
+	task_set *set = task_get_set(t->task);
 	if (set->link_wait)
 		runing_count_decrease();
-	my_task_message_free(task_msg);
+	my_task_message_free(t);
+	*task_msg=NULL;
 	}
 };
 
@@ -1414,7 +1416,7 @@ void task_send_message_callback(SoupSession *session, SoupMessage *msg,
 
 gboolean task_source(MyTaskMessage *task_msg) {
 	gchar *uri;
-	SoupMessage *msg;
+	SoupMessage *msg,*t;
 	task_set *task_setting = task_get_set(task_msg->task);
 	if (task_msg->uri == NULL) {
 		my_task_message_free(task_msg);
@@ -1439,7 +1441,8 @@ gboolean task_source(MyTaskMessage *task_msg) {
 			/*my_curl_add_download(mycurl, uri, NULL, NULL, NULL, NULL, NULL,
 					g_object_ref(task_msg), g_object_ref(task_msg),
 					g_object_ref(task_msg), g_object_ref(task_msg), FALSE);*/
-			my_soup_dl_add_download(mysoupdl,uri,g_object_ref(task_msg));
+			t=g_object_ref(task_msg);
+			my_soup_dl_add_download(mysoupdl,uri,t);
 			g_object_unref(task_msg);
 			if (!task_setting->link_wait)
 				runing_count_decrease();
