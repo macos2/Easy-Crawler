@@ -66,31 +66,58 @@ void runing_count_decrease() {
 		runing_count--;
 }
 /*
-void format_size(gdouble *size, gchar *i) {
-	*i = 0;
-	while (*size > 1024) {
-		*size = *size / 1024.;
-		*i = *i + 1;
-		if (*i >= 4)
-			break;
-	}
-}
+ void format_size(gdouble *size, gchar *i) {
+ *i = 0;
+ while (*size > 1024) {
+ *size = *size / 1024.;
+ *i = *i + 1;
+ if (*i >= 4)
+ break;
+ }
+ }
 
-gchar *format_size_to_str(gdouble size) {
-	gchar i;
-	format_size(&size, &i);
-	return g_strdup_printf("%3.2f %s", size, size_unit[i]);
-}
+ gchar *format_size_to_str(gdouble size) {
+ gchar i;
+ format_size(&size, &i);
+ return g_strdup_printf("%3.2f %s", size, size_unit[i]);
+ }
 
-gchar *format_dlsize_size(gint64 dlsize, gint64 content_size) {
-	gchar i, j;
-	gdouble s1 = dlsize, s2 = content_size;
-	format_size(&s1, &i);
-	format_size(&s2, &j);
-	return g_strdup_printf("%3.2f %s/%3.2f %s", s1, size_unit[i], s2,
-			size_unit[j]);
+ gchar *format_dlsize_size(gint64 dlsize, gint64 content_size) {
+ gchar i, j;
+ gdouble s1 = dlsize, s2 = content_size;
+ format_size(&s1, &i);
+ format_size(&s2, &j);
+ return g_strdup_printf("%3.2f %s/%3.2f %s", s1, size_unit[i], s2,
+ size_unit[j]);
+ }
+ */
+
+void session_authenticate(SoupSession *session, SoupMessage *msg,
+		SoupAuth *auth, gboolean retrying, gpointer user_data) {
+	GtkDialog *dialog = gtk_dialog_new();
+	gtk_dialog_add_button(dialog, "Ok", GTK_RESPONSE_OK);
+	gtk_dialog_add_button(dialog, "Cancel", GTK_RESPONSE_CANCEL);
+	GtkBox *content = gtk_dialog_get_content_area(dialog);
+	GtkLabel *label = gtk_label_new("Authenticate required");
+	GtkEntry *name = gtk_entry_new();
+	GtkEntry *password = gtk_entry_new();
+	gtk_entry_set_placeholder_text(name, "Name");
+	gtk_entry_set_placeholder_text(password, "PassWord");
+	gtk_entry_set_visibility(password, FALSE);
+	gtk_box_pack_start(content, label, TRUE, FALSE, 2);
+	gtk_box_pack_start(content, name, TRUE, FALSE, 2);
+	gtk_box_pack_start(content, password, TRUE, FALSE, 2);
+	gtk_widget_show_all(content);
+	if (gtk_dialog_run(dialog) == GTK_RESPONSE_OK) {
+		soup_auth_authenticate(auth, gtk_entry_get_text(name),
+				gtk_entry_get_text(password));
+	} else {
+		soup_session_cancel_message(session, msg, SOUP_STATUS_CANCELLED);
+	};
+	gtk_widget_destroy(dialog);
 }
-*/
+;
+
 op_data *operater_get_opdata(MyOperater *op) {
 	return g_hash_table_lookup(operater_to_opdata, op);
 }
@@ -721,7 +748,7 @@ void main_ui_setting(MyMainui *ui, gpointer userdata) {
 ;
 
 void main_ui_down_info(MyMainui *ui, gpointer userdata) {
-	gtk_window_present (down_win);
+	gtk_window_present(down_win);
 }
 
 void clear_log_task_href(gpointer key, gpointer value, gpointer user_data) {
@@ -872,9 +899,66 @@ char *task_thread_output_file_setname(task_set *set, MyTaskMessage *task_msg) {
 	return abs_name;
 }
 /*
-gchar* task_curl_set_filename_callback(gchar *suggest_name,
-		MyTaskMessage *task_msg) {
-	gchar *name, *temp;
+ gchar* task_curl_set_filename_callback(gchar *suggest_name,
+ MyTaskMessage *task_msg) {
+ gchar *name, *temp;
+ if (task_msg == NULL)
+ return NULL;
+ task_set *set = task_get_set(task_msg->task);
+ g_free(task_msg->suggest_filename);
+ task_msg->suggest_filename = g_strdup(suggest_name);
+ name = task_thread_output_file_setname(set, task_msg);
+ return name;
+ }
+ ;
+
+ void task_curl_set_cookies_callback(gchar *cookies, MyTaskMessage *task_msg) {
+ if (task_msg == NULL)
+ return;
+ SoupCookieJar *cookiejar = soup_session_get_feature(task_msg->session,
+ SOUP_TYPE_COOKIE_JAR);
+ soup_cookie_jar_set_cookie(cookiejar, task_msg->uri, cookies);
+ }
+ ;
+
+ gchar * task_my_curl_get_cookies_callback(MyTaskMessage *task_msg) {
+ gchar *cookies = NULL;
+ GString *str = g_string_new("");
+ SoupCookieJar *cookiejar = soup_session_get_feature(task_msg->session,
+ SOUP_TYPE_COOKIE_JAR);
+ if (cookiejar != NULL) {
+ cookies = soup_cookie_jar_get_cookies(cookiejar, task_msg->uri, FALSE);
+ g_string_append_printf(str, "%s;", cookies);
+ g_free(cookies);
+ cookies = str->str;
+ g_string_free(str, FALSE);
+ }
+ return cookies;
+ }
+ ;
+
+ gchar ** task_my_curl_get_proxy_callback(gchar *uri, MyTaskMessage *task_msg) {
+ GProxyResolver *resolver = NULL;
+ SoupSession *s = session;
+ if (task_msg != NULL)
+ s = task_msg->session;
+ g_object_get(s, "proxy-resolver", &resolver, NULL);
+ if (resolver == NULL)
+ return NULL;
+ return g_proxy_resolver_lookup(resolver, uri, NULL, NULL);
+ }
+ ;
+
+ void task_my_curl_finish_callback(MyTaskMessage *task_msg) {
+ task_set *set = task_get_set(task_msg->task);
+ if (set->link_wait)
+ runing_count_decrease();
+ }
+ */
+
+gchar* task_soup_dl_set_name(MySoupDl *dl, const gchar *uri,
+		const gchar *suggest_name, MyTaskMessage *task_msg, gpointer data) {
+	gchar *name;
 	if (task_msg == NULL)
 		return NULL;
 	task_set *set = task_get_set(task_msg->task);
@@ -885,71 +969,18 @@ gchar* task_curl_set_filename_callback(gchar *suggest_name,
 }
 ;
 
-void task_curl_set_cookies_callback(gchar *cookies, MyTaskMessage *task_msg) {
-	if (task_msg == NULL)
-		return;
-	SoupCookieJar *cookiejar = soup_session_get_feature(task_msg->session,
-	SOUP_TYPE_COOKIE_JAR);
-	soup_cookie_jar_set_cookie(cookiejar, task_msg->uri, cookies);
-}
-;
-
-gchar * task_my_curl_get_cookies_callback(MyTaskMessage *task_msg) {
-	gchar *cookies = NULL;
-	GString *str = g_string_new("");
-	SoupCookieJar *cookiejar = soup_session_get_feature(task_msg->session,
-	SOUP_TYPE_COOKIE_JAR);
-	if (cookiejar != NULL) {
-		cookies = soup_cookie_jar_get_cookies(cookiejar, task_msg->uri, FALSE);
-		g_string_append_printf(str, "%s;", cookies);
-		g_free(cookies);
-		cookies = str->str;
-		g_string_free(str, FALSE);
+void task_soup_dl_download_finish(MySoupDl *dl, const gchar *uri,
+		const gchar *filename, const gchar *local, MyTaskMessage **task_msg) {
+	if (*task_msg != NULL) {
+		MyTaskMessage *t = *task_msg;
+		task_set *set = task_get_set(t->task);
+		if (set->link_wait)
+			runing_count_decrease();
+		my_task_message_free(t);
+		*task_msg = NULL;
 	}
-	return cookies;
 }
 ;
-
-gchar ** task_my_curl_get_proxy_callback(gchar *uri, MyTaskMessage *task_msg) {
-	GProxyResolver *resolver = NULL;
-	SoupSession *s = session;
-	if (task_msg != NULL)
-		s = task_msg->session;
-	g_object_get(s, "proxy-resolver", &resolver, NULL);
-	if (resolver == NULL)
-		return NULL;
-	return g_proxy_resolver_lookup(resolver, uri, NULL, NULL);
-}
-;
-
-void task_my_curl_finish_callback(MyTaskMessage *task_msg) {
-	task_set *set = task_get_set(task_msg->task);
-	if (set->link_wait)
-		runing_count_decrease();
-}
-*/
-
-gchar* task_soup_dl_set_name(MySoupDl *dl,const gchar *uri,const gchar *suggest_name, MyTaskMessage *task_msg,gpointer data){
-gchar *name;
-if (task_msg == NULL)
-		return NULL;
-	task_set *set = task_get_set(task_msg->task);
-	g_free(task_msg->suggest_filename);
-	task_msg->suggest_filename = g_strdup(suggest_name);
-	name = task_thread_output_file_setname(set, task_msg);
-return name;
-};
-
-void task_soup_dl_download_finish(MySoupDl *dl,const gchar *uri,const gchar *filename,const gchar *local,MyTaskMessage **task_msg){
-	if(*task_msg!=NULL){
-		MyTaskMessage *t=*task_msg;
-	task_set *set = task_get_set(t->task);
-	if (set->link_wait)
-		runing_count_decrease();
-	my_task_message_free(t);
-	*task_msg=NULL;
-	}
-};
 
 void task_thread_output_file(task_set *set, MyTaskMessage *task_msg,
 		gchar *xpath_result) {
@@ -1068,8 +1099,12 @@ void task_parse_head(SoupMessage *msg, MyTaskMessage *task_msg) {
 						}
 						temp1 = xmlNodeGetContent(
 								xpobj->nodesetval->nodeTab[0]);
-						task_msg->web_title = g_convert(temp1, -1, "utf-8",
-								task_msg->charset, NULL, NULL, NULL);
+						if (task_msg->charset != NULL) {
+							task_msg->web_title = g_convert(temp1, -1, "utf-8",
+									task_msg->charset, NULL, NULL, NULL);
+						} else {
+							task_msg->web_title = g_strdup(temp1);
+						}
 						g_free(temp1);
 						break;
 					default:
@@ -1254,8 +1289,13 @@ gint task_xpath_eval(MyTaskMessage *task_msg) {
 					continue;
 				}
 				temp = g_strstrip(temp);
-				content = g_convert(temp, -1, "utf-8", task_msg->charset, NULL,
-				NULL, NULL);
+				if (task_msg->charset != NULL) {
+					content = g_convert(temp, -1, "utf-8", task_msg->charset,
+							NULL,
+							NULL, NULL);
+				} else {
+					content = g_strdup(temp);
+				}
 				g_free(temp);
 				if (content == NULL) {
 					i++;
@@ -1395,12 +1435,15 @@ void task_send_message_callback(SoupSession *session, SoupMessage *msg,
 	} else {
 		//网页载入失败
 		uri = soup_uri_to_string(task_msg->uri, FALSE);
-		if (task_msg->reply < my_download_ui_get_reply(down_ui)) {
+		if (task_msg->reply < my_download_ui_get_reply(down_ui)
+				&& task_msg->msg->status_code != SOUP_STATUS_CANCELLED) {
 			//若失败次数少于允许重链接数目，重新连接。
 			task_msg->reply++;
-			task_msg->msg=g_object_ref(msg);
-			main_log(task_msg, "Try To Reload Uri \n\tUri:%s\n\tFailed Reson:%s\n\tReply:%d / %d\n",
-					uri, soup_status_get_phrase(msg->status_code),task_msg->reply,my_download_ui_get_reply(down_ui));
+			task_msg->msg = g_object_ref(msg);
+			main_log(task_msg,
+					"Try To Reload Uri \n\tUri:%s\n\tFailed Reson:%s\n\tReply:%d / %d\n",
+					uri, soup_status_get_phrase(msg->status_code),
+					task_msg->reply, my_download_ui_get_reply(down_ui));
 			soup_session_queue_message(task_msg->session, msg,
 					task_send_message_callback, task_msg);
 		} else {
@@ -1416,7 +1459,7 @@ void task_send_message_callback(SoupSession *session, SoupMessage *msg,
 
 gboolean task_source(MyTaskMessage *task_msg) {
 	gchar *uri;
-	SoupMessage *msg,*t;
+	SoupMessage *msg, *t;
 	task_set *task_setting = task_get_set(task_msg->task);
 	if (task_msg->uri == NULL) {
 		my_task_message_free(task_msg);
@@ -1439,10 +1482,10 @@ gboolean task_source(MyTaskMessage *task_msg) {
 				&& task_setting->output_file == TRUE) {
 			main_log(task_msg, "DownLoad\n\tUri:%s\n", uri);
 			/*my_curl_add_download(mycurl, uri, NULL, NULL, NULL, NULL, NULL,
-					g_object_ref(task_msg), g_object_ref(task_msg),
-					g_object_ref(task_msg), g_object_ref(task_msg), FALSE);*/
-			t=g_object_ref(task_msg);
-			my_soup_dl_add_download(mysoupdl,uri,t);
+			 g_object_ref(task_msg), g_object_ref(task_msg),
+			 g_object_ref(task_msg), g_object_ref(task_msg), FALSE);*/
+			t = g_object_ref(task_msg);
+			my_soup_dl_add_download(mysoupdl, uri, t);
 			g_object_unref(task_msg);
 			if (!task_setting->link_wait)
 				runing_count_decrease();
