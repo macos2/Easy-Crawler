@@ -1065,6 +1065,7 @@ void task_parse_head(SoupMessage *msg, MyTaskMessage *task_msg) {
 	guint i = 0;
 	FILE *f;
 	GMatchInfo *match_info = NULL;
+	GError *err = NULL;
 	g_mutex_lock(&task_msg->mutex);
 	mime_type = soup_message_headers_get_content_type(msg->response_headers,
 			&type_table);
@@ -1099,13 +1100,18 @@ void task_parse_head(SoupMessage *msg, MyTaskMessage *task_msg) {
 						}
 						temp1 = xmlNodeGetContent(
 								xpobj->nodesetval->nodeTab[0]);
+						i = xmlStrlen(temp1);
 						if (task_msg->charset != NULL) {
-							task_msg->web_title = g_convert(temp1, -1, "utf-8",
-									task_msg->charset, NULL, NULL, NULL);
+							task_msg->web_title = g_convert_with_fallback(temp1, i, "UTF-8",
+									task_msg->charset,"_",NULL, NULL, &err);
+							if (err != NULL) {
+								g_printerr("%s\n", err->message);
+								g_error_free(err);
+							}
 						} else {
 							task_msg->web_title = g_strdup(temp1);
 						}
-						g_free(temp1);
+						xmlFree(temp1);
 						break;
 					default:
 						task_msg->web_title = g_strdup("title");
@@ -1291,8 +1297,8 @@ gint task_xpath_eval(MyTaskMessage *task_msg) {
 				temp = g_strstrip(temp);
 				if (task_msg->charset != NULL) {
 					content = g_convert(temp, -1, "utf-8", task_msg->charset,
-							NULL,
-							NULL, NULL);
+					NULL,
+					NULL, NULL);
 				} else {
 					content = g_strdup(temp);
 				}
