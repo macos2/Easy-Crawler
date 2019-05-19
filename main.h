@@ -1572,7 +1572,8 @@ gboolean layout_draw_link(GtkWidget *widget, cairo_t *cr) {
 	GList *tasklist = g_hash_table_get_keys(task_to_linklist);
 	GList *taskdest;
 	op_data *src_opdata, *dest_opdata;
-	GtkAllocation src_alloc, des_alloc, op_alloc;
+	GtkAllocation src_alloc, des_alloc, op_alloc,des_op_alloc;
+	gint y;
 	tasklist = g_list_first(tasklist);
 	cairo_save(cr);
 	cairo_set_line_cap(cr, CAIRO_LINE_CAP_ROUND);
@@ -1587,25 +1588,59 @@ gboolean layout_draw_link(GtkWidget *widget, cairo_t *cr) {
 		while (taskdest != NULL) {
 			if (MY_IS_TASK(taskdest->data)) {
 				dest_opdata = task_get_opdata(taskdest->data);
+
 				gtk_widget_get_allocation(taskdest->data, &des_alloc);
+				gtk_widget_get_allocation(dest_opdata->operater,&des_op_alloc);
+				gtk_widget_get_allocation(src_opdata->operater, &op_alloc);
+
 				if (src_opdata->operater == dest_opdata->operater) {
-					gtk_widget_get_allocation(src_opdata->operater, &op_alloc);
+					//连接目标op同为源op
 					cairo_set_source_rgba(cr, 0, 0, 1, 0.5);
 					cairo_move_to(cr, src_alloc.x + src_alloc.width,
 							src_alloc.y + src_alloc.height / 2);
 					cairo_line_to(cr, src_alloc.x + src_alloc.width + 40,
 							src_alloc.y + src_alloc.height / 2);
 					cairo_line_to(cr, src_alloc.x + src_alloc.width + 40,
-							op_alloc.y + op_alloc.height + 40);
+							op_alloc.y + op_alloc.height + 20);
 					cairo_line_to(cr, des_alloc.x - 40,
-							op_alloc.y + op_alloc.height + 40);
+							op_alloc.y + op_alloc.height + 20);
 					cairo_line_to(cr, des_alloc.x - 40,
 							des_alloc.y + des_alloc.height / 2);
 					cairo_line_to(cr, des_alloc.x,
 							des_alloc.y + des_alloc.height / 2);
 					cairo_stroke(cr);
-				} else {
+				} else if((op_alloc.x+op_alloc.width)>des_alloc.x){
+					//连接目标op在源op的左边
 					cairo_set_source_rgba(cr, 0, 1, 0, 0.5);
+					cairo_move_to(cr, src_alloc.x + src_alloc.width,
+							src_alloc.y + src_alloc.height / 2);
+					cairo_line_to(cr, src_alloc.x + src_alloc.width + 40,
+							src_alloc.y + src_alloc.height / 2);
+					if(des_op_alloc.y>op_alloc.y&&des_op_alloc.y<(op_alloc.y+op_alloc.height)){
+						//目标op头在源op内
+						y=des_op_alloc.y+des_op_alloc.height+20;
+					}else if((des_op_alloc.y+des_op_alloc.height)>op_alloc.y&&(des_op_alloc.y+des_op_alloc.height)<(op_alloc.y+op_alloc.height)){
+						//目标op尾在源op内
+						y=op_alloc.y+op_alloc.height+20;
+					}else if(des_op_alloc.y>op_alloc.y){
+						//目标op头部留有空间
+						y=(op_alloc.y+op_alloc.height+des_op_alloc.y)/2;
+					}else{
+						//目标op尾部留有空间
+						y=(des_op_alloc.y+des_op_alloc.height+op_alloc.y)/2;
+					}
+					cairo_line_to(cr, src_alloc.x + src_alloc.width + 40,
+							y);
+					cairo_line_to(cr, des_alloc.x - 40,
+							y);
+					cairo_line_to(cr, des_alloc.x - 40,
+							 des_alloc.y+des_alloc.height/2);
+					cairo_line_to(cr, des_alloc.x,
+							 des_alloc.y+des_alloc.height/2);
+					cairo_stroke(cr);
+				}else {
+					cairo_set_source_rgba(cr, 0, 1, 0, 0.5);
+
 					cairo_move_to(cr, src_alloc.x + src_alloc.width,
 							src_alloc.y + src_alloc.height / 2);
 					cairo_line_to(cr, src_alloc.x + src_alloc.width + 40,
