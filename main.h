@@ -1288,6 +1288,8 @@ gint task_xpath_eval(MyTaskMessage *task_msg) {
 		ns = xpobj->nodesetval;
 		g_string_printf(str, "\n\n####### XPATH: %s\n####### URI: %s\n",
 				set->xpath, u);
+		if(task_msg->web_title!=NULL)
+			g_string_append_printf(str, "####### TITLE: %s\n",task_msg->web_title);
 		if (task_link != NULL) {
 			for (i = 0; i < ns->nodeNr; i++) {
 				temp = xmlNodeGetContent(ns->nodeTab[i]);
