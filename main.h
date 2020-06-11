@@ -51,6 +51,7 @@ GRegex *fmt_filename_date, *fmt_filename_time, *fmt_filename_title,
 GList *notify_download_list, *finish_download_list;
 guint runing_count = 0;
 GAsyncQueue *process_queue;
+GtkListStore *additional_head_request;
 static gint task_id = 0;
 static gint operater_id = 0;
 static gchar *size_unit[] = { "Byte", "KiB", "MiB", "GiB", "TiB" };
@@ -517,6 +518,45 @@ void update_task_address(gpointer data, GHashTable *task_id_table) {
 }
 ;
 
+void main_ui_save_additional_header_request(GOutputStream *out){
+	GtkTreeIter iter;
+	gchar *name,*value;
+	gint n_row=gtk_tree_model_iter_n_children(additional_head_request,NULL);
+	gtk_tree_model_get_iter_first(additional_head_request,&iter);
+	g_output_stream_write(out,&n_row,sizeof(gint),NULL,NULL);
+	while(n_row>0){
+		gtk_tree_model_get(additional_head_request,&iter,0,&name,1,&value,-1);
+		main_ui_save_string(name,out);
+		main_ui_save_string(value,out);
+		g_free(name);
+		g_free(value);
+		gtk_tree_model_iter_next(additional_head_request,&iter);
+		n_row--;
+	}
+
+};
+
+void main_ui_load_additional_header_request(GInputStream *in){
+	gint n_row=0;
+	GtkTreeIter iter;
+	gchar *name,*value;
+	g_input_stream_read(in,&n_row,sizeof(gint),NULL,NULL);
+	if(n_row>0){
+		gtk_list_store_clear(additional_head_request);
+		while(n_row>0){
+			name=main_ui_read_string(in);
+			value=main_ui_read_string(in);
+			gtk_list_store_append(additional_head_request,&iter);
+			gtk_list_store_set(additional_head_request,&iter,0,name,1,value,-1);
+			g_free(name);
+			g_free(value);
+			n_row--;
+		}
+	}
+
+};
+
+
 void main_ui_save(MyMainui *ui, gpointer userdata) {
 	GtkDialog *dialog = gtk_file_chooser_dialog_new("Open", ui,
 			GTK_FILE_CHOOSER_ACTION_SAVE, GTK_STOCK_SAVE, GTK_RESPONSE_OK,
@@ -614,6 +654,11 @@ void main_ui_save(MyMainui *ui, gpointer userdata) {
 			}
 		}
 		;
+		//保存外部cookies 文件路径
+		main_ui_save_string(COOKIE_FILE,output);
+		//保存附加请求头值
+		main_ui_save_additional_header_request(output);
+
 		g_io_stream_close(io, NULL, NULL);
 		g_free(filename);
 		break;
@@ -712,6 +757,14 @@ void main_ui_open(MyMainui *ui, gpointer userdata) {
 					g_hash_table_lookup(task_id_table, p),
 					g_list_first(tem_list2));
 		}
+		//读取外部cookies文件
+		if(COOKIE_FILE!=NULL)g_free(COOKIE_FILE);
+		COOKIE_FILE=main_ui_read_string(in);
+		soup_session_add_feature(session,
+				soup_cookie_jar_db_new(COOKIE_FILE, TRUE));
+		//读取附加请求头值
+		main_ui_load_additional_header_request(in);
+
 		g_print("Open file:%s\n", filename);
 		g_free(filename);
 		g_io_stream_close(io, NULL, NULL);
@@ -726,7 +779,8 @@ void main_ui_open(MyMainui *ui, gpointer userdata) {
 }
 
 void main_ui_setting(MyMainui *ui, gpointer userdata) {
-	MyMainuiSetting *set = my_mainui_setting_new(COOKIE_FILE, MAX_THREAD);
+
+	MyMainuiSetting *set = my_mainui_setting_new(COOKIE_FILE, MAX_THREAD,additional_head_request);
 	gtk_window_set_transient_for(set, ui);
 	gint i = gtk_dialog_run(set);
 	switch (i) {
@@ -1466,8 +1520,9 @@ void task_send_message_callback(SoupSession *session, SoupMessage *msg,
 }
 
 gboolean task_source(MyTaskMessage *task_msg) {
-	gchar *uri;
+	gchar *uri,*header_name=NULL,*header_value=NULL;
 	SoupMessage *msg, *t;
+	GtkTreeIter iter;
 	task_set *task_setting = task_get_set(task_msg->task);
 	if (task_msg->uri == NULL) {
 		my_task_message_free(task_msg);
@@ -1501,6 +1556,21 @@ gboolean task_source(MyTaskMessage *task_msg) {
 		} else {
 			main_log(task_msg, "Load Uri\n\tUri:%s\n", uri);
 			msg = soup_message_new_from_uri("GET", task_msg->uri);
+			gtk_tree_model_get_iter_first(additional_head_request,&iter);
+			do{
+			gtk_tree_model_get(additional_head_request,&iter,0,&header_name,1,&header_value,-1);
+			if(g_strcmp0("",header_name)!=0){
+					soup_message_headers_replace(msg->request_headers,header_name,header_value);
+			}
+			g_free(header_name);
+			g_free(header_value);
+			}while(gtk_tree_model_iter_next(additional_head_request,&iter));
+
+//			soup_message_headers_replace(msg->request_headers,\
+//					"User-Agent",\
+//					"Mozilla/5.0 (iPhone; CPU iPhone OS 12_0 like Mac OS X) AppleWebKit/604.1.38 (KHTML, like Gecko) Version/12.0 Mobile/15A372 Safari/604.1"\
+//					);
+
 			task_msg->msg = g_object_ref(msg);
 			soup_session_queue_message(task_msg->session, msg,
 					task_send_message_callback, task_msg);

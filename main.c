@@ -70,6 +70,11 @@ void my_app_init() {
 	finish_download_list = NULL;
 	process_queue = g_async_queue_new();
 	g_free(time_str);
+
+	GtkTreeIter iter;
+	additional_head_request=gtk_list_store_new(2,G_TYPE_STRING,G_TYPE_STRING);
+	gtk_list_store_append(additional_head_request,&iter);
+	gtk_list_store_set(additional_head_request,&iter,0,"",1,"... add new value",-1);
 }
 
 gboolean notify_thread_num(MyMainui *ui) {

@@ -15,7 +15,7 @@ G_DECLARE_DERIVABLE_TYPE(MyMainuiSetting,my_mainui_setting,MY,MAINUI_SETTING,Gtk
 typedef struct _MyMainuiSettingClass{
 	GtkDialogClass parent_class;
 };
-MyMainuiSetting *my_mainui_setting_new(gchar *filename,gint num);
+MyMainuiSetting *my_mainui_setting_new(gchar *filename,gint num,GtkListStore *list);
 gchar *my_mainui_setting_get_cookie_filename(MyMainuiSetting *self);
 gint my_mainui_setting_get_thread_num(MyMainuiSetting *self);
 gboolean my_mainui_setting_set_cookie_filename(MyMainuiSetting *self,gchar *filename);
