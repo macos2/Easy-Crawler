@@ -57,10 +57,9 @@ static gint operater_id = 0;
 static gchar *size_unit[] = { "Byte", "KiB", "MiB", "GiB", "TiB" };
 
 gboolean task_source(MyTaskMessage *task_msg);
-GArray *task_xpath_content_fmt(const MyTaskMessage *task_msg, const gchar *fmt,
+GArray* task_xpath_content_fmt(const MyTaskMessage *task_msg, const gchar *fmt,
 		const GArray *content);
-GArray *task_xpath_regex_match(const gchar *regex_pattern,
-		const gchar *eval_content);
+GArray* task_regex_match(const gchar *regex_pattern, const gchar *eval_content);
 
 void runing_count_decrease() {
 	if (runing_count > 0)
@@ -119,20 +118,20 @@ void session_authenticate(SoupSession *session, SoupMessage *msg,
 }
 ;
 
-op_data *operater_get_opdata(MyOperater *op) {
+op_data* operater_get_opdata(MyOperater *op) {
 	return g_hash_table_lookup(operater_to_opdata, op);
 }
 ;
-op_data *task_get_opdata(MyTask *task) {
+op_data* task_get_opdata(MyTask *task) {
 	return g_hash_table_lookup(task_to_opdata, task);
 }
 
-task_set *task_get_set(MyTask *task) {
+task_set* task_get_set(MyTask *task) {
 	op_data *data = g_hash_table_lookup(task_to_opdata, task);
 	return g_hash_table_lookup(data->task_set, task);
 }
 
-GList *task_get_linklist(MyTask *task) {
+GList* task_get_linklist(MyTask *task) {
 	return g_hash_table_lookup(task_to_linklist, task);
 }
 
@@ -248,10 +247,10 @@ void task_update_status(MyTask *self, task_set *set) {
 	}
 }
 ;
-GArray * task_content_test(MyTaskSetting *setting, gchar *regex_pattren,
+GArray* task_content_test(MyTaskSetting *setting, gchar *regex_pattren,
 		gchar *output_fmt, gchar *eval_content, void *user_data) {
 	GArray *regex_arr, *fmt_arr;
-	regex_arr = task_xpath_regex_match(regex_pattren, eval_content);
+	regex_arr = task_regex_match(regex_pattren, eval_content);
 	fmt_arr = task_xpath_content_fmt(NULL, output_fmt, regex_arr);
 	g_ptr_array_set_free_func(regex_arr, g_free);
 	g_array_free(regex_arr, TRUE);
@@ -278,7 +277,7 @@ void task_link_del_clicked(MyTask *self, gpointer userdata) {
 	gtk_widget_queue_draw(data->ui);
 }
 
-MyTask * operater_add_task(MyOperater *self, gpointer userdata) {
+MyTask* operater_add_task(MyOperater *self, gpointer userdata) {
 	op_data *data = userdata;
 	MyTask *task = my_task_new();
 	task_set *set = g_malloc0(sizeof(task_set));
@@ -317,7 +316,7 @@ MyTask * operater_add_task(MyOperater *self, gpointer userdata) {
 }
 ;
 
-MyTask * operater_add_task_with_set(MyOperater *self, op_data *data,
+MyTask* operater_add_task_with_set(MyOperater *self, op_data *data,
 		task_set *task_set) {
 	MyTask *task = my_task_new();
 	my_operater_add(self, task);
@@ -375,7 +374,7 @@ void main_ui_clear_operater(MyMainui *ui, gpointer userdata) {
 }
 ;
 
-MyOperater * main_ui_add(MyMainui *ui, gpointer userdata) {
+MyOperater* main_ui_add(MyMainui *ui, gpointer userdata) {
 	op_data *data = g_malloc(sizeof(op_data));
 	gchar *str = g_strdup_printf("%d", operater_id++);
 	MyOperater *op = my_operater_new(str);
@@ -409,7 +408,7 @@ void main_ui_save_string(gchar *str, GOutputStream *out) {
 	}
 }
 
-gchar * main_ui_read_string(GInputStream *in) {
+gchar* main_ui_read_string(GInputStream *in) {
 	size_t i;
 	g_input_stream_read(in, &i, sizeof(size_t), NULL, NULL);
 	if (i == 0)
@@ -432,7 +431,7 @@ void main_ui_save_list(GList *list, GOutputStream *out) {
 	};
 }
 
-GList * main_ui_read_list(GList *list, GInputStream *in) {
+GList* main_ui_read_list(GList *list, GInputStream *in) {
 	guint i = 0;
 	guint length = 0;
 	gpointer p;
@@ -518,44 +517,47 @@ void update_task_address(gpointer data, GHashTable *task_id_table) {
 }
 ;
 
-void main_ui_save_additional_header_request(GOutputStream *out){
+void main_ui_save_additional_header_request(GOutputStream *out) {
 	GtkTreeIter iter;
-	gchar *name,*value;
-	gint n_row=gtk_tree_model_iter_n_children(additional_head_request,NULL);
-	gtk_tree_model_get_iter_first(additional_head_request,&iter);
-	g_output_stream_write(out,&n_row,sizeof(gint),NULL,NULL);
-	while(n_row>0){
-		gtk_tree_model_get(additional_head_request,&iter,0,&name,1,&value,-1);
-		main_ui_save_string(name,out);
-		main_ui_save_string(value,out);
+	gchar *name, *value;
+	gint n_row = gtk_tree_model_iter_n_children(additional_head_request, NULL);
+	gtk_tree_model_get_iter_first(additional_head_request, &iter);
+	g_output_stream_write(out, &n_row, sizeof(gint), NULL, NULL);
+	while (n_row > 0) {
+		gtk_tree_model_get(additional_head_request, &iter, 0, &name, 1, &value,
+				-1);
+		main_ui_save_string(name, out);
+		main_ui_save_string(value, out);
 		g_free(name);
 		g_free(value);
-		gtk_tree_model_iter_next(additional_head_request,&iter);
+		gtk_tree_model_iter_next(additional_head_request, &iter);
 		n_row--;
 	}
 
-};
+}
+;
 
-void main_ui_load_additional_header_request(GInputStream *in){
-	gint n_row=0;
+void main_ui_load_additional_header_request(GInputStream *in) {
+	gint n_row = 0;
 	GtkTreeIter iter;
-	gchar *name,*value;
-	g_input_stream_read(in,&n_row,sizeof(gint),NULL,NULL);
-	if(n_row>0){
+	gchar *name, *value;
+	g_input_stream_read(in, &n_row, sizeof(gint), NULL, NULL);
+	if (n_row > 0) {
 		gtk_list_store_clear(additional_head_request);
-		while(n_row>0){
-			name=main_ui_read_string(in);
-			value=main_ui_read_string(in);
-			gtk_list_store_append(additional_head_request,&iter);
-			gtk_list_store_set(additional_head_request,&iter,0,name,1,value,-1);
+		while (n_row > 0) {
+			name = main_ui_read_string(in);
+			value = main_ui_read_string(in);
+			gtk_list_store_append(additional_head_request, &iter);
+			gtk_list_store_set(additional_head_request, &iter, 0, name, 1,
+					value, -1);
 			g_free(name);
 			g_free(value);
 			n_row--;
 		}
 	}
 
-};
-
+}
+;
 
 void main_ui_save(MyMainui *ui, gpointer userdata) {
 	GtkDialog *dialog = gtk_file_chooser_dialog_new("Open", ui,
@@ -655,7 +657,7 @@ void main_ui_save(MyMainui *ui, gpointer userdata) {
 		}
 		;
 		//保存外部cookies 文件路径
-		main_ui_save_string(COOKIE_FILE,output);
+		main_ui_save_string(COOKIE_FILE, output);
 		//保存附加请求头值
 		main_ui_save_additional_header_request(output);
 
@@ -758,8 +760,9 @@ void main_ui_open(MyMainui *ui, gpointer userdata) {
 					g_list_first(tem_list2));
 		}
 		//读取外部cookies文件
-		if(COOKIE_FILE!=NULL)g_free(COOKIE_FILE);
-		COOKIE_FILE=main_ui_read_string(in);
+		if (COOKIE_FILE != NULL)
+			g_free(COOKIE_FILE);
+		COOKIE_FILE = main_ui_read_string(in);
 		soup_session_add_feature(session,
 				soup_cookie_jar_db_new(COOKIE_FILE, TRUE));
 		//读取附加请求头值
@@ -780,7 +783,8 @@ void main_ui_open(MyMainui *ui, gpointer userdata) {
 
 void main_ui_setting(MyMainui *ui, gpointer userdata) {
 
-	MyMainuiSetting *set = my_mainui_setting_new(COOKIE_FILE, MAX_THREAD,additional_head_request);
+	MyMainuiSetting *set = my_mainui_setting_new(COOKIE_FILE, MAX_THREAD,
+			additional_head_request);
 	gtk_window_set_transient_for(set, ui);
 	gint i = gtk_dialog_run(set);
 	switch (i) {
@@ -853,7 +857,7 @@ void main_log(MyTaskMessage *msg, gchar *format, ...) {
 	va_end(va);
 }
 
-char *task_thread_output_file_setname(task_set *set, MyTaskMessage *task_msg) {
+char* task_thread_output_file_setname(task_set *set, MyTaskMessage *task_msg) {
 	gint i = 0;
 	GHashTable *head_table;
 	GFile *file;
@@ -874,7 +878,7 @@ char *task_thread_output_file_setname(task_set *set, MyTaskMessage *task_msg) {
 			file = g_file_new_for_uri(uri_temp);
 			name = g_file_get_basename(file);
 			if (g_strcmp0("", name) == 0
-					|| g_strcmp0( G_DIR_SEPARATOR_S, name) == 0) {
+					|| g_strcmp0(G_DIR_SEPARATOR_S, name) == 0) {
 				g_free(name);
 				name = NULL;
 			}
@@ -1156,8 +1160,9 @@ void task_parse_head(SoupMessage *msg, MyTaskMessage *task_msg) {
 								xpobj->nodesetval->nodeTab[0]);
 						i = xmlStrlen(temp1);
 						if (task_msg->charset != NULL) {
-							task_msg->web_title = g_convert_with_fallback(temp1, i, "UTF-8",
-									task_msg->charset,"_",NULL, NULL, &err);
+							task_msg->web_title = g_convert_with_fallback(temp1,
+									i, "UTF-8", task_msg->charset, "_", NULL,
+									NULL, &err);
 							if (err != NULL) {
 								g_printerr("%s\n", err->message);
 								g_error_free(err);
@@ -1210,7 +1215,7 @@ gboolean task_check_if_same_uri(MyTaskMessage *task_msg) {
 	return result;
 }
 
-xmlXPathObject *task_search_xpath(task_set *set, MyTaskMessage *task_msg) {
+xmlXPathObject* task_search_xpath(task_set *set, MyTaskMessage *task_msg) {
 	if (set->search_xpath != TRUE)
 		return NULL;
 	xmlXPathObject *xobj = xmlXPathEvalExpression(set->xpath, task_msg->ctxt);
@@ -1218,7 +1223,7 @@ xmlXPathObject *task_search_xpath(task_set *set, MyTaskMessage *task_msg) {
 }
 ;
 
-GArray *task_xpath_regex_match(const gchar *regex_pattern,
+GArray* task_regex_match(const gchar *regex_pattern,
 		const gchar *eval_content) {
 	GRegex *regex;
 	GMatchInfo *info;
@@ -1233,6 +1238,7 @@ GArray *task_xpath_regex_match(const gchar *regex_pattern,
 	g_regex_match(regex, eval_content, 0, &info);
 	while (g_match_info_matches(info)) {
 		match = g_match_info_fetch(info, 0);
+		g_print("match:%s\n", match);
 		if (match != NULL)
 			g_array_append_val(res, match);
 		g_match_info_next(info, NULL);
@@ -1242,7 +1248,7 @@ GArray *task_xpath_regex_match(const gchar *regex_pattern,
 	return res;
 }
 
-GArray *task_xpath_content_fmt(const MyTaskMessage *task_msg, const gchar *fmt,
+GArray* task_xpath_content_fmt(const MyTaskMessage *task_msg, const gchar *fmt,
 		const GArray *content) {
 	guint i = 0;
 	gchar *uri, *title, *text, *t1, *t2;
@@ -1321,6 +1327,40 @@ void task_xpath_output(MyTaskMessage *task_msg, const gchar *content) {
 	soup_uri_free(uri);
 }
 
+GArray* task_regex_and_fmt(MyTaskMessage *task_msg, guchar *content) {
+	GList *task_link = task_get_linklist(task_msg->task);
+	GArray *regex_arr, *fmt_arr;
+	task_set *set = task_get_set(task_msg->task);
+	guint i, j, output = 0;
+	xmlChar *temp;
+	//正规表达式是否非空
+	if (g_strcmp0(set->regex_pattern, "") != 0) {
+		//非空则以该正规表达式匹配Xpath结果
+		regex_arr = task_regex_match(set->regex_pattern, content);
+	} else {
+		//空则直接复制Xpath结果
+		regex_arr = g_array_new(TRUE, FALSE, sizeof(gpointer));
+		temp = g_strdup(content);
+		g_array_append_val(regex_arr, temp);
+	}
+	//Xpath结果格式化是否非空
+	if (g_strcmp0(set->fmt_output, "") != 0) {
+		//非空则以该格式格式化内容
+		fmt_arr = task_xpath_content_fmt(task_msg, set->fmt_output, regex_arr);
+	} else {
+		//空则直接不处理内容，直接复制
+		fmt_arr = g_array_new(TRUE, FALSE, sizeof(gpointer));
+		for (j = 0; j < regex_arr->len; j++) {
+			temp = g_strdup(g_array_index(regex_arr, gpointer, j));
+			g_array_append_val(fmt_arr, temp);
+		}
+	}
+	g_ptr_array_set_free_func(regex_arr, g_free);
+	g_ptr_array_set_free_func(fmt_arr, g_free);
+	g_array_free(regex_arr, TRUE);
+	return fmt_arr;
+}
+
 gint task_xpath_eval(MyTaskMessage *task_msg) {
 	GArray *a, *b;
 	xmlXPathObject *xpobj;
@@ -1330,10 +1370,10 @@ gint task_xpath_eval(MyTaskMessage *task_msg) {
 	guchar *content;
 	GList *task_link = task_get_linklist(task_msg->task);
 	gchar *u = soup_uri_to_string(task_msg->uri, FALSE);
-	MyTaskMessage *sub_task_msg;
-	GArray *regex_arr, *fmt_arr;
+	//MyTaskMessage *sub_task_msg;
+	GArray *fmt_arr;
 	GString *str = task_msg->xpath_result, *output_log = g_string_new("");
-	task_set *set = task_get_set(task_msg->task), *sub_set;
+	task_set *set = task_get_set(task_msg->task);
 	g_string_append_printf(output_log, "Parse Xpath\n\tURI:%s\n\tXPATH:%s\n", u,
 			set->xpath);
 	//main_log(task_msg, "Parse Xpath\n\tXpath:%s\n", set->xpath);
@@ -1342,16 +1382,19 @@ gint task_xpath_eval(MyTaskMessage *task_msg) {
 		ns = xpobj->nodesetval;
 		g_string_printf(str, "\n\n####### XPATH: %s\n####### URI: %s\n",
 				set->xpath, u);
-		if(task_msg->web_title!=NULL)
-			g_string_append_printf(str, "####### TITLE: %s\n",task_msg->web_title);
+		if (task_msg->web_title != NULL)
+			g_string_append_printf(str, "####### TITLE: %s\n",
+					task_msg->web_title);
 		if (task_link != NULL) {
 			for (i = 0; i < ns->nodeNr; i++) {
 				temp = xmlNodeGetContent(ns->nodeTab[i]);
 				if (temp == NULL) {
+					//Xpath分析内容为空
 					continue;
 				}
 				temp = g_strstrip(temp);
 				if (task_msg->charset != NULL) {
+					//编码转换
 					content = g_convert(temp, -1, "utf-8", task_msg->charset,
 					NULL,
 					NULL, NULL);
@@ -1368,61 +1411,23 @@ gint task_xpath_eval(MyTaskMessage *task_msg) {
 				if (stop_thread == FALSE) {
 					//Xpath结果是否要修整
 					if (set->output_modify) {
-						//Xpath结果要修整
-						//正规表达式是否非空
-						if (g_strcmp0(set->regex_pattern, "") != 0) {
-							//非空则以该正规表达式匹配Xpath结果
-							regex_arr = task_xpath_regex_match(
-									set->regex_pattern, content);
-						} else {
-							//空则直接复制Xpath结果
-							regex_arr = g_array_new(TRUE, FALSE,
-									sizeof(gpointer));
-							temp = g_strdup(content);
-							g_array_append_val(regex_arr, temp);
-						}
-						//Xpath结果格式化是否非空
-						if (g_strcmp0(set->fmt_output, "") != 0) {
-							//非空则以该格式格式化内容
-							fmt_arr = task_xpath_content_fmt(task_msg,
-									set->fmt_output, regex_arr);
-						} else {
-							//空则直接不处理内容，直接复制
-							fmt_arr = g_array_new(TRUE, FALSE,
-									sizeof(gpointer));
-							for (j = 0; j < regex_arr->len; j++) {
-								temp = g_strdup(
-										g_array_index(regex_arr, gpointer, j));
-								g_array_append_val(fmt_arr, temp);
-							}
-						}
+						fmt_arr = task_regex_and_fmt(task_msg, content);
 						g_string_append_printf(str, "\t  =>\n");
-
 						for (j = 0; j < fmt_arr->len; j++) {
 							task_xpath_output(task_msg,
 									g_array_index(fmt_arr, gpointer, j));
 							g_string_append_printf(output_log,
 									"\t  \"%s\"\n\t  =>:\"%s\"\n", content,
 									g_array_index(fmt_arr, gpointer, j));
-							/*	main_log(task_msg,
-							 "Output Xpath value\n\tXpath:%s\n\tValue:%s\n\t  =>:\"%s\"\n",
-							 set->xpath, content,
-							 g_array_index(fmt_arr, gpointer, j));*/
 							g_string_append_printf(str, "\t    \"%s\"\n",
 									g_array_index(fmt_arr, gpointer, j));
 							output++;
 						}
-						g_ptr_array_set_free_func(regex_arr, g_free);
-						g_ptr_array_set_free_func(fmt_arr, g_free);
-						g_array_free(regex_arr, TRUE);
 						g_array_free(fmt_arr, TRUE);
 					} else {
 						//Xpath结果不用修整
 						g_string_append_printf(output_log, "\t  \"%s\"\n",
 								content);
-						/*main_log(task_msg,
-						 "Output Xpath value\n\tXpath:%s\n\tValue:%s\n",
-						 set->xpath, content);*/
 						task_xpath_output(task_msg, content);
 						output++;
 					}
@@ -1453,10 +1458,36 @@ gint task_xpath_eval(MyTaskMessage *task_msg) {
 
 gboolean task_process(MyTaskMessage *task_msg) {
 	gint output = 0;
+	gchar *content;
+	gint i;
 	gboolean nonnull_break = FALSE;
 	task_set *task_setting = task_get_set(task_msg->task);
 	if (task_setting->search_xpath) {
 		output = task_xpath_eval(task_msg);
+	} else if (task_setting->output_modify) {
+		if (task_msg->charset != NULL) {
+			//编码转换
+			content = g_convert(task_msg->msg->response_body->data, -1, "utf-8",
+					task_msg->charset,
+					NULL,
+					NULL, NULL);
+		} else {
+			content = g_strdup(task_msg->msg->response_body->data);
+		}
+		GArray *fmt_arr = task_regex_and_fmt(task_msg, content);
+		if (fmt_arr != NULL) {
+			for (i = 0; i < fmt_arr->len; i++) {
+				task_xpath_output(task_msg,
+						g_array_index(fmt_arr, gpointer, i));
+				main_log(task_msg, "\t  \"%s\"\n",
+						g_array_index(fmt_arr, gpointer, i));
+				g_string_append_printf(task_msg->xpath_result, "\t    \"%s\"\n",
+						g_array_index(fmt_arr, gpointer, i));
+				output++;
+			}
+		}
+		g_array_free(fmt_arr, TRUE);
+		g_free(content);
 	}
 	if (task_setting->output_file) {
 		g_free(task_msg->filename);
@@ -1474,9 +1505,12 @@ gboolean task_process(MyTaskMessage *task_msg) {
 	op_data *data = task_get_opdata(task_msg->task);
 	GList *task_list = g_list_find(data->task, task_msg->task);
 	if (task_setting->nonnull_break && output > 0) {
+		//结果非空退出
 		nonnull_break = TRUE;
 	}
-	if (task_list->next == NULL || stop_thread == TRUE || nonnull_break == TRUE) {
+	if (task_list->next == NULL || stop_thread == TRUE
+			|| nonnull_break == TRUE) {
+		//退出下一级任务的执行。
 		my_task_message_free(task_msg);
 	} else {
 		task_msg->task = task_list->next->data;
@@ -1520,7 +1554,7 @@ void task_send_message_callback(SoupSession *session, SoupMessage *msg,
 }
 
 gboolean task_source(MyTaskMessage *task_msg) {
-	gchar *uri,*header_name=NULL,*header_value=NULL;
+	gchar *uri, *header_name = NULL, *header_value = NULL;
 	SoupMessage *msg, *t;
 	GtkTreeIter iter;
 	task_set *task_setting = task_get_set(task_msg->task);
@@ -1556,15 +1590,17 @@ gboolean task_source(MyTaskMessage *task_msg) {
 		} else {
 			main_log(task_msg, "Load Uri\n\tUri:%s\n", uri);
 			msg = soup_message_new_from_uri("GET", task_msg->uri);
-			gtk_tree_model_get_iter_first(additional_head_request,&iter);
-			do{
-			gtk_tree_model_get(additional_head_request,&iter,0,&header_name,1,&header_value,-1);
-			if(g_strcmp0("",header_name)!=0){
-					soup_message_headers_replace(msg->request_headers,header_name,header_value);
-			}
-			g_free(header_name);
-			g_free(header_value);
-			}while(gtk_tree_model_iter_next(additional_head_request,&iter));
+			gtk_tree_model_get_iter_first(additional_head_request, &iter);
+			do {
+				gtk_tree_model_get(additional_head_request, &iter, 0,
+						&header_name, 1, &header_value, -1);
+				if (g_strcmp0("", header_name) != 0) {
+					soup_message_headers_replace(msg->request_headers,
+							header_name, header_value);
+				}
+				g_free(header_name);
+				g_free(header_value);
+			} while (gtk_tree_model_iter_next(additional_head_request, &iter));
 
 //			soup_message_headers_replace(msg->request_headers,\
 //					"User-Agent",\
@@ -1644,7 +1680,7 @@ gboolean layout_draw_link(GtkWidget *widget, cairo_t *cr) {
 	GList *tasklist = g_hash_table_get_keys(task_to_linklist);
 	GList *taskdest;
 	op_data *src_opdata, *dest_opdata;
-	GtkAllocation src_alloc, des_alloc, op_alloc,des_op_alloc;
+	GtkAllocation src_alloc, des_alloc, op_alloc, des_op_alloc;
 	gint y;
 	tasklist = g_list_first(tasklist);
 	cairo_save(cr);
@@ -1662,7 +1698,7 @@ gboolean layout_draw_link(GtkWidget *widget, cairo_t *cr) {
 				dest_opdata = task_get_opdata(taskdest->data);
 
 				gtk_widget_get_allocation(taskdest->data, &des_alloc);
-				gtk_widget_get_allocation(dest_opdata->operater,&des_op_alloc);
+				gtk_widget_get_allocation(dest_opdata->operater, &des_op_alloc);
 				gtk_widget_get_allocation(src_opdata->operater, &op_alloc);
 
 				if (src_opdata->operater == dest_opdata->operater) {
@@ -1681,36 +1717,40 @@ gboolean layout_draw_link(GtkWidget *widget, cairo_t *cr) {
 					cairo_line_to(cr, des_alloc.x,
 							des_alloc.y + des_alloc.height / 2);
 					cairo_stroke(cr);
-				} else if((op_alloc.x+op_alloc.width)>des_alloc.x){
+				} else if ((op_alloc.x + op_alloc.width) > des_alloc.x) {
 					//连接目标op在源op的左边
 					cairo_set_source_rgba(cr, 0, 1, 0, 0.5);
 					cairo_move_to(cr, src_alloc.x + src_alloc.width,
 							src_alloc.y + src_alloc.height / 2);
 					cairo_line_to(cr, src_alloc.x + src_alloc.width + 40,
 							src_alloc.y + src_alloc.height / 2);
-					if(des_op_alloc.y>op_alloc.y&&des_op_alloc.y<(op_alloc.y+op_alloc.height)){
+					if (des_op_alloc.y > op_alloc.y
+							&& des_op_alloc.y
+									< (op_alloc.y + op_alloc.height)) {
 						//目标op头在源op内
-						y=des_op_alloc.y+des_op_alloc.height+20;
-					}else if((des_op_alloc.y+des_op_alloc.height)>op_alloc.y&&(des_op_alloc.y+des_op_alloc.height)<(op_alloc.y+op_alloc.height)){
+						y = des_op_alloc.y + des_op_alloc.height + 20;
+					} else if ((des_op_alloc.y + des_op_alloc.height)
+							> op_alloc.y
+							&& (des_op_alloc.y + des_op_alloc.height)
+									< (op_alloc.y + op_alloc.height)) {
 						//目标op尾在源op内
-						y=op_alloc.y+op_alloc.height+20;
-					}else if(des_op_alloc.y>op_alloc.y){
+						y = op_alloc.y + op_alloc.height + 20;
+					} else if (des_op_alloc.y > op_alloc.y) {
 						//目标op头部留有空间
-						y=(op_alloc.y+op_alloc.height+des_op_alloc.y)/2;
-					}else{
+						y = (op_alloc.y + op_alloc.height + des_op_alloc.y) / 2;
+					} else {
 						//目标op尾部留有空间
-						y=(des_op_alloc.y+des_op_alloc.height+op_alloc.y)/2;
+						y = (des_op_alloc.y + des_op_alloc.height + op_alloc.y)
+								/ 2;
 					}
-					cairo_line_to(cr, src_alloc.x + src_alloc.width + 40,
-							y);
+					cairo_line_to(cr, src_alloc.x + src_alloc.width + 40, y);
+					cairo_line_to(cr, des_alloc.x - 40, y);
 					cairo_line_to(cr, des_alloc.x - 40,
-							y);
-					cairo_line_to(cr, des_alloc.x - 40,
-							 des_alloc.y+des_alloc.height/2);
+							des_alloc.y + des_alloc.height / 2);
 					cairo_line_to(cr, des_alloc.x,
-							 des_alloc.y+des_alloc.height/2);
+							des_alloc.y + des_alloc.height / 2);
 					cairo_stroke(cr);
-				}else {
+				} else {
 					cairo_set_source_rgba(cr, 0, 1, 0, 0.5);
 
 					cairo_move_to(cr, src_alloc.x + src_alloc.width,
