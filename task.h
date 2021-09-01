@@ -16,7 +16,7 @@ G_BEGIN_DECLS
 #define task_state_xpath "system-search"
 #define task_state_none ""
 #define task_state_print "utilities-terminal"
-enum{
+typedef enum{
 	task_name=1,
 	task_state,
 	task_label,

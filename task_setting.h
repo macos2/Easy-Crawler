@@ -11,7 +11,7 @@
 #include <gtk/gtk.h>
 #include "MY_DECLARE.h"
 G_BEGIN_DECLS
-enum{
+typedef enum{
 	TASK_SOURCE_URL,
 	TASK_SOURCE_FILE,
 	TASK_SOURCE_LINKER

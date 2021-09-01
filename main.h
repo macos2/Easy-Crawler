@@ -202,7 +202,7 @@ void task_drag_data_received(GtkWidget *widget, GdkDragContext *context, gint x,
 ;
 void task_update_status(MyTask *self, task_set *set) {
 	gchar *str = NULL;
-	if (set->search_xpath) {
+	if (set->search_xpath||set->output_modify) {
 		gtk_image_set_from_icon_name(my_task_get_next_icon(self),
 				"go-next-symbolic", GTK_ICON_SIZE_SMALL_TOOLBAR);
 		g_signal_connect(my_task_get_next_event(self), "drag-data-get",
